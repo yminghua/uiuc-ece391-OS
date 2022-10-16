@@ -2,14 +2,14 @@
 # vim:ts=4 noexpandtab
 
 #define ASM     1
-#include "x86_desc.h"
+# include "x86_desc.h"
 
 .text
 
 .globl ldt_size, tss_size
 .globl gdt_desc, ldt_desc, tss_desc
 .globl tss, tss_desc_ptr, ldt, ldt_desc_ptr
-.globl gdt_ptr
+.globl gdt_ptr, gdt_desc_ptr
 .globl idt_desc_ptr, idt
 
 .align 4
@@ -106,3 +106,9 @@ _idt:
     .endr
 
 idt_bottom:
+
+gdt_desc_ptr:
+.word gdt_bottom - gdt - 1 # <gdt size>
+.long gdt # <gdt address>
+
+.align 16 

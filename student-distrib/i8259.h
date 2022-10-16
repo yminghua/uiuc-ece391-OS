@@ -26,7 +26,7 @@
  * the interrupt number and sent out to the PIC
  * to declare the interrupt finished */
 #define EOI                 0x60
-
+#define irq_port_total      8 //yst
 /* Externally-visible functions */
 
 /* Initialize both PICs */
