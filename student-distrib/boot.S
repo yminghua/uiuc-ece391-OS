@@ -29,9 +29,11 @@ continue:
     # Load CS with the new descriptor value
     ljmp    $KERNEL_CS, $keep_going
 
+    # LYS; Load the PD and PT here?
+
 keep_going:
     # Set up ESP so we can have an initial stack
-    movl    $0x800000, %esp
+    movl    $0x800000, %esp  #LYS. 8MB
 
     # Set up the rest of the segment selector registers
     movw    $KERNEL_DS, %cx

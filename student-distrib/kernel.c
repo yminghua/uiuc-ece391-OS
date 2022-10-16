@@ -4,6 +4,7 @@
 
 #include "multiboot.h"
 #include "x86_desc.h"
+#include "x86_page.h" //LYS
 #include "lib.h"
 #include "i8259.h"
 #include "debug.h"
@@ -139,6 +140,12 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Init the PIC */
     i8259_init();
 
+    /* LYS: Init and enable paging */
+    SET_PD_ENTRY_4K(PD[0], PT, 1, 0);
+    SET_PT_ENTRY(PT[0], 0xB8000, 1, 0);
+    SET_PD_ENTRY_4M(PD[1], 0x400000, 1, 0);
+    enable_paging(PD);
+
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
 
@@ -154,6 +161,8 @@ void entry(unsigned long magic, unsigned long addr) {
     launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
+    //LYS: add a while (1) loop here for testing
+    while (1) {};
 
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile (".1: hlt; jmp .1;");
