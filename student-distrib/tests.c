@@ -64,7 +64,7 @@ int page_test(){
 		if (PD[vm>>22].P == 0) continue;
 		//big page
 		if (PD[vm>>22].PS == 1) {
-			printf("A big page at Virtual memory: %d, Map to Physical memory: %d\n", vm, (PD[vm>>22].PBase_Addr)<<22);
+			printf("A big page at Virtual memory: %x, Map to Physical memory: %x\n", vm, (PD[vm>>22].PBase_Addr)<<22);
 			vm += 0x400000-1; //4MB-1
 			continue;
 		}
@@ -72,7 +72,7 @@ int page_test(){
 		PTE_t *PT_ = &PT[PD[vm>>22].PTBase_Addr];
 		int PT_addr = (vm>>12)&0x003FF000;
 		if (PT_[PT_addr].P == 1) {
-			printf("A small page at Virtual memory: %d, Map to Physical memory: %d\n", vm, (PT_[PT_addr].PBase_Addr)<<12);
+			printf("A small page at Virtual memory: %x, Map to Physical memory: %x\n", vm, (PT_[PT_addr].PBase_Addr)<<12);
 			vm += 0x1000-1; //4KB-1
 			continue;
 		}
@@ -93,8 +93,7 @@ int page_test(){
 
 /* Test suite entry point */
 void launch_tests(){
-	//TEST_OUTPUT("idt_test", idt_test());
+	TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
 	TEST_OUTPUT("page_test", page_test());
-	while (1);
 }

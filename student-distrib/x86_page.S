@@ -33,12 +33,14 @@ PT_size:
     .long PT_bottom - PT - 1
 
 #1024 PDEs and 1024 PTEs
+.align 0x1000
 PD:
     .rept 1024
     .long 0
     .endr
 PD_bottom:
 
+.align 0x1000
 PT:
     .rept 1024
     .long 0
