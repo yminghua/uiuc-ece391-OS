@@ -1,6 +1,7 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "idt.h"
 
 #define PASS 1
 #define FAIL 0
@@ -45,6 +46,45 @@ int idt_test(){
 	return result;
 }
 
+/* Divide by zero test
+ *
+ * Should cause a divide by zero exception
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: crashes kernel
+ * Coverage: Divide by zero Exception
+ */
+int Divide_Error_test()
+{
+    TEST_HEADER;
+
+	int result = PASS;
+    test_Divide_Error();
+
+    return result;
+}
+
+int Reversed_test()
+{
+	TEST_HEADER;
+
+	int result = PASS;
+    test_REVERSED();
+
+    return result;
+}
+
+int System_calls_test()
+{
+	TEST_HEADER;
+
+	int result = PASS;
+	test_System_calls();
+
+    return result;
+}
+
+
 // add more tests here
 
 /* Checkpoint 2 tests */
@@ -57,4 +97,7 @@ int idt_test(){
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
+	TEST_OUTPUT("Divide_Error_test", Divide_Error_test());
+	TEST_OUTPUT("Reversed_test", Reversed_test());
+	TEST_OUTPUT("System_calls_test", System_calls_test());
 }

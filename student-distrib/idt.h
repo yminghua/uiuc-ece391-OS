@@ -42,4 +42,10 @@ void RTC_Interrupt(void);
 void System_calls(void);
 
 
+/* Test functions*/
+void test_System_calls(void);
+void test_Divide_Error(void);
+void test_REVERSED(void);
+
+
 #endif /* _ITD_H */
