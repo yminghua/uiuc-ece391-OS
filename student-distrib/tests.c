@@ -49,7 +49,7 @@ int idt_test(){
 
 /* Paging Test - LYS
  * 
- * Asserts VM 0 goes to video memory page, VM 4MB~8MB-1
+ * Asserts VM 0xB8000 goes to video memory page, VM 4MB~8MB-1 goes to a big page 4MB~8MB-1
  * Inputs: None
  * Outputs: PASS/FAIL, printing to screen about memory info
  * Side Effects: None
