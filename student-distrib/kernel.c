@@ -5,6 +5,7 @@
 #include "multiboot.h"
 #include "x86_desc.h"
 #include "x86_page.h" //LYS
+#include "idt.h" //LYS
 #include "lib.h"
 #include "i8259.h"
 #include "debug.h"
@@ -137,14 +138,14 @@ void entry(unsigned long magic, unsigned long addr) {
         ltr(KERNEL_TSS);
     }
 
+    Init_IDT(); //LYS
+
+    /* LYS: Init and enable paging */
+    init_paging();
+
     /* Init the PIC */
     i8259_init();
 
-    /* LYS: Init and enable paging */
-    SET_PD_ENTRY_4K(PD[0], PT, 1, 0);
-    SET_PT_ENTRY(PT[0], 0xB8000, 1, 0);
-    SET_PD_ENTRY_4M(PD[1], 0x400000, 1, 0);
-    enable_paging(PD);
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */

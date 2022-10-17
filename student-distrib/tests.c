@@ -1,6 +1,7 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "x86_page.h" //LYS
+#include "types.h" //LYS
 #include "lib.h"
 
 #define PASS 1
@@ -58,7 +59,7 @@ int idt_test(){
 int page_test(){
 	TEST_HEADER;
 
-	int vm, prev=0, cur=0;
+	int vm; //prev=0, cur=0
 	int result = PASS;
 	for (vm = 0; vm < 0x800001; vm++){  //for vm from 0 to 8MB+1
 		if (PD[vm>>22].P == 0) continue;
@@ -69,8 +70,8 @@ int page_test(){
 			continue;
 		}
 		//small page
-		PTE_t *PT_ = &PT[PD[vm>>22].PTBase_Addr];
-		int PT_addr = (vm>>12)&0x003FF000;
+		PTE_t *PT_ = (PTE_t *)(((uint32_t)(PD[vm>>22].PTBase_Addr))<<12);
+		int PT_addr = (vm&0x003FF000)>>12;
 		if (PT_[PT_addr].P == 1) {
 			printf("A small page at Virtual memory: %x, Map to Physical memory: %x\n", vm, (PT_[PT_addr].PBase_Addr)<<12);
 			vm += 0x1000-1; //4KB-1
