@@ -17,7 +17,7 @@ uint8_t slave_mask;  /* IRQs 8-15 */
 void i8259_init(void) {
 
     unsigned long flags;
-    
+    int k;
     // lock
     cli_and_save(flags);    // Saves the EFLAGS register into the variable "flags", and then disables interrupts on this processor
 
@@ -37,8 +37,9 @@ void i8259_init(void) {
     outb(ICW3_SLAVE,SLAVE_8259_PORT+1);     // ICW3, secondary PIC: input pin on primary PIC;, in port 0xA1
     outb(ICW4, SLAVE_8259_PORT+1);          // ICW4, ISA=x86, normal/auto EOI, in port 0xA1
     
+    for(k=0;k<16;k++)disable_irq(k); //disable all the mask...
     // enable slave interrupts to be processed on master.
-    enable_irq(2); // 2, the irq_num of slave line on master
+    //enable_irq(2); // 2, the irq_num of slave line on master
 
     // unlock
     sti();                  // set interrupt flag - enable interrupts on this processor
@@ -53,7 +54,7 @@ void i8259_init(void) {
 void enable_irq(uint32_t irq_num) {
 
     // legal iqr_num ?
-    if(irq_num >= 2 * irq_port_total || irq_num <= 0){ // 2 for both PIC
+    if(irq_num >= 2 * irq_port_total || irq_num < 0){ // 2 for both PIC
         printf("illegal irq_num in function enable_irq");
         return; 
     }
@@ -77,7 +78,7 @@ void enable_irq(uint32_t irq_num) {
 void disable_irq(uint32_t irq_num) {
 
     // legal iqr_num ?
-    if(irq_num >= 2 * irq_port_total || irq_num <= 0 ){ // 2 for both PIC
+    if(irq_num >= 2 * irq_port_total || irq_num < 0 ){ // 2 for both PIC
         printf("illegal irq_num in function disable_irq");
         return; 
     }
@@ -102,7 +103,7 @@ void disable_irq(uint32_t irq_num) {
 void send_eoi(uint32_t irq_num) {
 
     // legal iqr_num ?
-    if(irq_num >= 2 * irq_port_total || irq_num <=0){ // 2 for both PIC
+    if(irq_num >= 2 * irq_port_total || irq_num <0){ // 2 for both PIC
         printf("illegal irq_num in function send_eoi");
         return; 
     }

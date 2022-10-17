@@ -3,11 +3,25 @@
 #include "e391synchronize.h"
 #include "i8259.h"
 #include "intrexcenum.h"
+#include "types.h"
 
 #define RTC_TIMES 1>>4        //youcan choose the 1, 10 ,100, 1000 ,100000....
 
-char std_scancodetoascii[70];//the standard scan code of the keyboard to ascii reference, we only complete part of them (including cahr and number)
-
+//the standard scan code of the keyboard to ascii reference, we only complete part of them (including cahr and number)
+//the translation is referenced to linux0.11:KBD_US, we do't consider the correcness or compability after '/'
+uint8_t std_scancodetoascii[70]= {
+        0,  27,
+        '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 
+        '\b','\t',                                                 
+        'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 
+        '\n', 0,                                         
+        'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', 
+        '`',   0,                                      
+        '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',    //below is not sure/or not right maybe.
+        0, '*', 0, ' ',  
+        0,  'Z',  'X',   'C',   0,   0,   0,   0,   0,   0,
+        0 
+    };
 volatile int if9pressed = 0;         //warning, this is just for cp1 testing, 9 means open test of the RTC handler. We do not add lock, because it will only use twice.
 
 
@@ -26,12 +40,13 @@ void keyboard_init(void) {
  * 
  * 
  */
-void keyboard_handler(){
+void keyboard_handler(void){
     static int e0=0, e1=0;  //state despriptor, we now won't use it yet.
     //by default, we think e0 stands for 1 following 
-    char scancode;
-    if((kbsget()&1)==1){    //8042a protocol. That status bit means there is scan code available in 0x60 port.
-      scancode = kbcget();//get the scancode.
+    cli();//for safety...
+    int scancode;
+    if((inb(0x64)&1)==1){    //8042a protocol. That status bit means there is scan code available in 0x60 port.
+      scancode = inb(0x60);//get the scancode.
       if(scancode != 0xE0 && scancode != 0xE1){//situation not be e0 or e1
           if(e0!=0) e0--;
           if(e1!=0) e1--; //now we doesn't deal with special key yet.
@@ -75,20 +90,7 @@ void keyboard_handler(){
 
 }
 
-//the translation is referenced to linux0.11:KBD_US, we do't consider the correcness or compability after '/'
-char std_scancodetoascii[70]= {
-        0,  27,
-        '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 
-        '\b','\t',                                                 
-        'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 
-        '\n', 0,                                         
-        'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', 
-        '`',   0,                                      
-        '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',    //below is not sure/or not right maybe.
-        0, '*', 0, ' ',  
-        0,  'Z',  'X',   'C',   0,   0,   0,   0,   0,   0,
-        0 
-    };
+
 /****
  * 
  * 
@@ -106,9 +108,9 @@ char std_scancodetoascii[70]= {
  * 
  * 
 */
-void rtc_handler(){   //we wait for at least RTC_TIMES intrrputs. **We consider it is a 1 core machine so decide this simple code.
+void rtc_handler(void){   //we wait for at least RTC_TIMES intrrputs. **We consider it is a 1 core machine so decide this simple code.
                       //if it is a muti-core, we need to have  independent structures for every cpu.
-    static volatile times = 0;
+    static volatile int times = 0;
     times ++;
     send_eoi(RTC_IRQ);
     if((times-1)==1){
@@ -125,4 +127,9 @@ void rtc_handler(){   //we wait for at least RTC_TIMES intrrputs. **We consider 
     sti();//enable the intrrupts as soon as possible.here cp1 test printing should before the interrupt enable.
     return;
 }
+
+void rtc_init(void){
+  
+}
+
 //create by drush8

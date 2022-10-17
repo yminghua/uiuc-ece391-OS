@@ -63,9 +63,9 @@ void Init_IDT(void){
     SET_IDT_ENTRY(idt[19], Floating_Point_Exception);
 
     /* vector index for keyboard interrupt is 0x21 */
-    SET_IDT_ENTRY(idt[0x21], rtc_handler_linkage);
+    SET_IDT_ENTRY(idt[0x28], rtc_handler_linkage);
     /* vector index for RTC interrupt is 0x28 */
-    SET_IDT_ENTRY(idt[0x28], keyboard_handler_linkage);
+    SET_IDT_ENTRY(idt[0x21], keyboard_handler_linkage);
     /* vector index for system calls is 0x80 */
     //may only used in cp1.
     SET_IDT_ENTRY(idt[0x80], System_calls);
