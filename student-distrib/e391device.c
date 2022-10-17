@@ -6,7 +6,7 @@
 #include "types.h"
 
 //below is the macro for the RTC
-#define RTC_TIMES 1>>3        //youcan choose the 1, 10 ,100, 1000 ,100000....
+#define RTC_TIMES 600        //youcan choose the 1, 10 ,100, 1000 ,100000....
 #define RTC_SELECTOR 0x70
 #define RTC_RW 0x71
 #define RTC_RA 0x8A
@@ -123,6 +123,10 @@ void rtc_handler(void){   //we wait for at least RTC_TIMES intrrputs. **We consi
     static volatile int times = 0;
     times ++;
     send_eoi(RTC_IRQ);
+
+    outb(0x0C,RTC_SELECTOR); //here we choose the RC. Why not begin at 0x8C? I don't know yet
+    inb(RTC_RW);              //similar to the keyboard, you need to read the Register to show that your acception.
+
     if((times-1)==1){
       return;         //ok, not the first one , you don't need to goto the while
     }

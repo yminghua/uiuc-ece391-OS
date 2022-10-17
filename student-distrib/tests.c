@@ -98,7 +98,7 @@ int syscall_test(){
 			"int $0x80;"
 			:
 			:
-			: "mem","cc"
+			: "memory","cc"
 	);  //call the syscall.
 
 	return PASS; //pass and teturn back, yehh
@@ -134,7 +134,7 @@ int KAndR_test(){
 int pageFexception_test(){
 	TEST_HEADER;
 	int *p = NULL;
-	printf("\n\n final eception test, if the blue screen exception is Page Fault, it will stands as pass.\n\n\n");
+	printf("\n\n final eception test, if the blue screen exception is Page Fault,\n it will stands as pass.\n\n\n");
 	while(if9pressed!=-1);
 	*p = 999;
 	return PASS; //this should not be reached.
@@ -154,7 +154,7 @@ void launch_tests(){
 	// launch your tests here
 	TEST_OUTPUT("page_test", page_test());
 	TEST_OUTPUT("syscall_test", syscall_test());
-	TEST_OUTPUT("keyboardandRTC_test", KandR_test());
+	TEST_OUTPUT("keyboardandRTC_test", KAndR_test());
 
 	//warning: this final test will lead to the blue screen of the kernel. drush8
 	TEST_OUTPUT("PageFault_test", pageFexception_test());

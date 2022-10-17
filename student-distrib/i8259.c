@@ -39,7 +39,7 @@ void i8259_init(void) {
     
     for(k=0;k<16;k++)disable_irq(k); //disable all the mask...
     // enable slave interrupts to be processed on master.
-    //enable_irq(2); // 2, the irq_num of slave line on master
+    enable_irq(2); // 2, the irq_num of slave line on master
 
     // unlock
     sti();                  // set interrupt flag - enable interrupts on this processor
