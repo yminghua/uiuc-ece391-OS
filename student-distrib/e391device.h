@@ -2,7 +2,7 @@
 #define E391DEVICE_H
 //create by drush8
 
-
+extern volatile int if9pressed;     //only used in cp1:drush8
 
 /******interrupt******/
 extern void rtc_handler(void);

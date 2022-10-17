@@ -66,6 +66,8 @@ void keyboard_handler(void){
             if(if9pressed == 0)if9pressed=1;
             else if9pressed =0;
           }
+          if (std_scancodetoascii[scancode] == '8') if9pressed = -2; 
+          if (std_scancodetoascii[scancode] == '7') if9pressed = -1;
           ////////warning: the code here is created only for cp1.
           }
         }

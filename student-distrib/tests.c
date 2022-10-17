@@ -3,9 +3,10 @@
 #include "x86_page.h" //LYS
 #include "types.h" //LYS
 #include "lib.h"
+#include "e391device.h"//drush8: can be cancelled when we doesn't use cp1: pageF test
 
 #define PASS 1
-#define FAIL 0
+#define FAIL 0 
 
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
@@ -21,6 +22,8 @@ static inline void assertion_failure(){
 
 
 /* Checkpoint 1 tests */
+
+
 
 /* IDT Test - Example
  * 
@@ -46,8 +49,7 @@ int idt_test(){
 
 	return result;
 }
-
-/* Checkpoint 1 Paging Test - LYS
+/* Paging Test - LYS
  * 
  * Asserts VM 0 goes to video memory page, VM 4MB~8MB-1
  * Inputs: None
@@ -78,11 +80,65 @@ int page_test(){
 			continue;
 		}
 	}
-
 	return result;
 }
 
+/* syscall Test - Drush8
+ * 
+ * Asserts that syscall can be called and return properly.
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Coverage: syscall and idt as well as assambly linkage
+ * Files: idt.c/h, ece391device.c/h(only in cp1)
+ */
+int syscall_test(){
+	TEST_HEADER;
+	asm volatile(
+			"int $0x80;"
+			:
+			:
+			: "mem","cc"
+	);  //call the syscall.
 
+	return PASS; //pass and teturn back, yehh
+}
+
+/* K&R Test - Drush8
+ * 
+ * Asserts that keyboard and RTC interrupt works well.
+ * Inputs: None
+ * Outputs: PASS
+ * Side Effects: None
+ * Coverage: interrupt handler
+ * Files: idt.c/h, ece391device.c/h(only in cp1)
+ */
+int KAndR_test(){
+	TEST_HEADER;
+	printf("now type what you want, when you type 9, will show you the RTC blinking!!!\n");
+	while(if9pressed!=-2);
+	clear();
+	return PASS; //pass and teturn back, yehh
+}
+
+/* pageFexception Test - Drush8
+ * 
+ * Asserts that if we see the 	NULL pointer, we need to turn to pageF exception handler and Blue Screen
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Coverage: exception handler, page
+ * Files: idt.c/h, e391exception.c/h
+ */
+
+int pageFexception_test(){
+	TEST_HEADER;
+	int *p = NULL;
+	printf("\n\n final eception test, if the blue screen exception is Page Fault, it will stands as pass.\n\n\n");
+	while(if9pressed!=-1);
+	*p = 999;
+	return PASS; //this should not be reached.
+}
 
 // add more tests here
 
@@ -95,7 +151,11 @@ int page_test(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-//	while(1);
 	// launch your tests here
 	TEST_OUTPUT("page_test", page_test());
+	TEST_OUTPUT("syscall_test", syscall_test());
+	TEST_OUTPUT("keyboardandRTC_test", KandR_test());
+
+	//warning: this final test will lead to the blue screen of the kernel. drush8
+	TEST_OUTPUT("PageFault_test", pageFexception_test());
 }
