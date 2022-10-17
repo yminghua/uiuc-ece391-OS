@@ -1,5 +1,7 @@
 #include "tests.h"
 #include "x86_desc.h"
+#include "x86_page.h" //LYS
+#include "types.h" //LYS
 #include "lib.h"
 
 #define PASS 1
@@ -45,6 +47,43 @@ int idt_test(){
 	return result;
 }
 
+/* Checkpoint 1 Paging Test - LYS
+ * 
+ * Asserts VM 0 goes to video memory page, VM 4MB~8MB-1
+ * Inputs: None
+ * Outputs: PASS/FAIL, printing to screen about memory info
+ * Side Effects: None
+ * Coverage: Init and Enable paging
+ * Files: x86_page.h/S
+ */
+int page_test(){
+	TEST_HEADER;
+
+	int vm; //prev=0, cur=0
+	int result = PASS;
+	for (vm = 0; vm < 0x800001; vm++){  //for vm from 0 to 8MB+1
+		if (PD[vm>>22].P == 0) continue;
+		//big page
+		if (PD[vm>>22].PS == 1) {
+			printf("A big page at Virtual memory: %x, Map to Physical memory: %x\n", vm, (PD[vm>>22].PBase_Addr)<<22);
+			vm += 0x400000-1; //4MB-1
+			continue;
+		}
+		//small page
+		PTE_t *PT_ = (PTE_t *)(((uint32_t)(PD[vm>>22].PTBase_Addr))<<12);
+		int PT_addr = (vm&0x003FF000)>>12;
+		if (PT_[PT_addr].P == 1) {
+			printf("A small page at Virtual memory: %x, Map to Physical memory: %x\n", vm, (PT_[PT_addr].PBase_Addr)<<12);
+			vm += 0x1000-1; //4KB-1
+			continue;
+		}
+	}
+
+	return result;
+}
+
+
+
 // add more tests here
 
 /* Checkpoint 2 tests */
@@ -58,4 +97,5 @@ void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
 //	while(1);
 	// launch your tests here
+	TEST_OUTPUT("page_test", page_test());
 }

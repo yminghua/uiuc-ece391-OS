@@ -112,3 +112,5 @@ gdt_desc_ptr:
 .long gdt # <gdt address>
 
 .align 16 
+
+

@@ -1,0 +1,33 @@
+//created by LYS on 2022/10/16
+Before the start of every checkpoint, synchronize every branch.
+
+/**********************************************************************/
+/*                                                                    */
+/*                           For Pull                                 */
+/*                                                                    */
+/**********************************************************************/
+Do this at the start (or end) of every check point. 4 people pull together
+1. at branch master: git pull origin master
+2. git checkout your_branch
+3. git merge master
+Start working at your local branch.
+
+
+/**********************************************************************/
+/*                                                                    */
+/*                           For Push                                 */
+/*                                                                    */
+/**********************************************************************/
+Do this every time you've tested that code works at your local branch
+first make sure your branch work with latest master version:
+1. at branch master: git pull origin master (get latest master)
+2. git ckeckout your_branch
+3. git merge master
+4. test if code work
+
+if doesn't work, contact with person who did the last master push. If works, do the following:
+1. at branch your_branch: commit and git push origin your_branch
+2. git ckeckout master
+3. git merge your_branch
+4. git push origin master
+Remember to push twice, one for your_branch and one for master

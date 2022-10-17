@@ -6,9 +6,9 @@
 #define VIDEO       0xB8000
 #define NUM_COLS    80
 #define NUM_ROWS    25
-#define ATTRIB      0x7
+#define ATTRIB      0x7  //LYS: This's a color?
 
-static int screen_x;
+static int screen_x;  //LYS: Set by us?
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
 
@@ -415,7 +415,7 @@ void* memmove(void* dest, const void* src, uint32_t n) {
  *               character that does not match has a greater value
  *               in str1 than in str2; And a value less than zero
  *               indicates the opposite.
- * Function: compares string 1 and string 2 for equality */
+ * Function: compares string 1 and string 2 for equality */  
 int32_t strncmp(const int8_t* s1, const int8_t* s2, uint32_t n) {
     int32_t i;
     for (i = 0; i < n; i++) {
