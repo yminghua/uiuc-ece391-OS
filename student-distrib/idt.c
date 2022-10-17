@@ -32,7 +32,7 @@ void Init_IDT(void){
     {
         idt[i].seg_selector = KERNEL_CS;
         idt[i].reserved4 = 0;
-        idt[i].reserved3 = 0;   // according to Figure 5-2. IDT Gate Descriptors: Trap Gate in the ISA Reference Manual
+        idt[i].reserved3 = 0;   // according to Figure 5-2. IDT Gate Descriptors: intrrupt Gate in the ISA Reference Manual
         idt[i].reserved2 = 1;
         idt[i].reserved1 = 1;
         idt[i].size = 1;    // Size of gate: 1 = 32 bits
@@ -63,119 +63,12 @@ void Init_IDT(void){
     SET_IDT_ENTRY(idt[19], Floating_Point_Exception);
 
     /* vector index for keyboard interrupt is 0x21 */
-    SET_IDT_ENTRY(idt[0x21], Keyboard_Interrupt);
+    SET_IDT_ENTRY(idt[0x21], rtc_handler_linkage);
     /* vector index for RTC interrupt is 0x28 */
-    SET_IDT_ENTRY(idt[0x28], RTC_Interrupt);
+    SET_IDT_ENTRY(idt[0x28], keyboard_handler_linkage);
     /* vector index for system calls is 0x80 */
+    //may only used in cp1.
     SET_IDT_ENTRY(idt[0x80], System_calls);
 
 }
 
-
-/*
- *  Handle_exceptions:
- *    DESCRIPTION: deal with all exception handlers.
- *    INPUTS: vec_id: vector index in the IDT
- *    OUTPUTS: none
- *    RETURN VALUE: none
- *    SIDE EFFECTS: current exception is handled
- */
-void Print_exceptions(int vec_id){
-    switch (vec_id)
-    {
-    case 0:
-        printf("Divide_Error!!!\n");
-        break;
-
-    case 1:
-        printf("REVERSED!!!\n");
-        break;
-    
-    case 2:
-        printf("NMI_Interrupt!!!\n");
-        break;
-
-    case 3:
-        printf("Breakpoint!!!\n");
-        break;
-
-    case 4:
-        printf("Overflow!!!\n");
-        break;
-
-    case 5:
-        printf("BOUND_Range_Exceeded!!!\n");
-        break;
-
-    case 6:
-        printf("Invalid_Opcode!!!\n");
-        break;
-
-    case 7:
-        printf("Device_Not_Available!!!\n");
-        break;
-
-    case 8:
-        printf("Double_Fault!!!\n");
-        break;
-
-    case 9:
-        printf("Coprocessor_Segment_Overrun!!!\n");
-        break;
-
-    case 10:
-        printf("Invalid_TSS!!!\n");
-        break;
-
-    case 11:
-        printf("Segment_Not_Present!!!\n");
-        break;
-
-    case 12:
-        printf("Stack_Segment_Fault!!!\n");
-        break;
-
-    case 13:
-        printf("General_Protection!!!\n");
-        break;
-
-    case 14:
-        printf("Page_Fault!!!\n");
-        break;
-
-    case 16:
-        printf("Floating_Point_Error!!!\n");
-        break;
-
-    case 17:
-        printf("Alignment_Check!!!\n");
-        break;
-
-    case 18:
-        printf("Machine_Check!!!\n");
-        break;
-
-    case 19:
-        printf("Floating_Point_Exception!!!\n");
-        break;
-
-    default:
-        break;
-    }
-
-}
-
-
-/*
- *  Handle_system_calls:
- *    DESCRIPTION: deal with a system call.
- *    INPUTS: nonr
- *    OUTPUTS: none
- *    RETURN VALUE: none
- *    SIDE EFFECTS: print that a system call was 
- *                  called when the handler associated 
- *                  with 0x80 is executed
- */
-void Print_system_calls(void){
-    printf("A system call was called!\n");
-}

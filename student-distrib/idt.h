@@ -37,8 +37,11 @@ void Machine_Check(void);
 void Floating_Point_Exception(void);
 
 /* Interrupts from keyboard, RTC, and system_calls */
-void Keyboard_Interrupt(void);
-void RTC_Interrupt(void);
+extern void rtc_handler_linkage();
+extern void keyboard_handler_linkage(); //2022.10.16. Now only two interrupt.
+
+
+//may only used in cp1
 void System_calls(void);
 
 

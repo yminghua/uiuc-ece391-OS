@@ -8,6 +8,8 @@
 #include "i8259.h"
 #include "debug.h"
 #include "tests.h"
+#include "e391device.h"
+#include "intrexcenum.h"
 
 #define RUN_TESTS
 
@@ -146,8 +148,12 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
-    /*printf("Enabling Interrupts\n");
-    sti();*/
+
+    //interrupt work begin :: drush8
+    printf("Enabling Interrupts\n");
+    keyboard_init();
+    enable_irq(KEYBOARD_IRQ);//drush8, now we only enable the keyboard.
+    sti();
 
 #ifdef RUN_TESTS
     /* Run tests */
