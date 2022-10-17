@@ -2,6 +2,7 @@
  * vim:ts=4 noexpandtab */
 
 #include "lib.h"
+#include "x86_page.h"
 
 #define VIDEO       0xB8000
 #define NUM_COLS    80
@@ -475,4 +476,35 @@ void test_interrupts(void) {
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         video_mem[i << 1]++;
     }
+}
+
+
+/*LYS
+ * void bad_kernel_addr(addr, len)
+ * Inputs: addr, len
+ * Return Value: 1 for the block of address is present, 0 for there exist some page which is not present
+ * Function: test whether a block of kernel address is valid */
+int32_t bad_kernel_addr(const void* addr, int32_t len) {
+    int vm; 
+	int result = 1;
+	for (vm = 0; vm < 0x800001; vm++){  //for vm from 0 to 8MB+1
+		if (PD[vm>>22].P == 0) {result=0; break;}
+		//big page
+		if (PD[vm>>22].PS == 1) {
+			//printf("A big page at Virtual memory: %x, Map to Physical memory: %x\n", vm, (PD[vm>>22].PBase_Addr)<<22);
+			//vm += 0x400000-1; //4MB-1
+			continue;
+		}
+		//small page
+		PTE_t *PT_ = (PTE_t *)(((uint32_t)(PD[vm>>22].PTBase_Addr))<<12);
+		int PT_addr = (vm&0x003FF000)>>12;
+        if (PT_[PT_addr].P == 0) {result=0; break;}
+		else {
+			//printf("A small page at Virtual memory: %x, Map to Physical memory: %x\n", vm, (PT_[PT_addr].PBase_Addr)<<12);
+			//vm += 0x1000-1; //4KB-1
+			continue;
+		}
+	}
+
+	return result;
 }
