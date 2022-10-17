@@ -5,7 +5,15 @@
 #include "intrexcenum.h"
 #include "types.h"
 
-#define RTC_TIMES 1>>4        //youcan choose the 1, 10 ,100, 1000 ,100000....
+//below is the macro for the RTC
+#define RTC_TIMES 1>>3        //youcan choose the 1, 10 ,100, 1000 ,100000....
+#define RTC_SELECTOR 0x70
+#define RTC_RW 0x71
+#define RTC_RA 0x8A
+#define RTC_RB 0x8B
+
+
+//below is the macro for the KB
 
 //the standard scan code of the keyboard to ascii reference, we only complete part of them (including cahr and number)
 //the translation is referenced to linux0.11:KBD_US, we do't consider the correcness or compability after '/'
@@ -128,8 +136,29 @@ void rtc_handler(void){   //we wait for at least RTC_TIMES intrrputs. **We consi
     return;
 }
 
+
+//warning: we need to call it in critical section
 void rtc_init(void){
-  
+    //first step: set the frequency correctly.
+    // for RA: UIP| DV2 1 0 | RS 3 2 1 0   PC set the divide-control bits 010 by default.
+    //for the rate , we choose 32768 / (2^6) = 512 so rate is : 0b0111
+
+    //warning: every op on RA&B(whatever r/w), we need reset the port.
+    outb(RTC_RA, RTC_SELECTOR); 
+    char va = inb(RTC_RW);
+    outb(RTC_RA, RTC_SELECTOR); 
+    outb((va | 0x07 | 0x20), RTC_RW); //0b010 and 0b0111
+
+    //second step: open the interrupt enable bit for RegisterB
+    //the 6th bit of RB is interrupt enable so it is 0b100,000 ->0x40s
+    outb(RTC_RB, RTC_SELECTOR); 
+    char vb = inb(RTC_RW);
+    outb(RTC_RB, RTC_SELECTOR); 
+    outb((vb | 0x40), RTC_RW); // 
+
+    //final step: enable the irq.
+    enable_irq(RTC_IRQ);  //unmask the irq of the rtc.
+    return;
 }
 
 //create by drush8

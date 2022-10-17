@@ -152,6 +152,7 @@ void entry(unsigned long magic, unsigned long addr) {
     //interrupt work begin :: drush8
     printf("Enabling Interrupts\n");
     keyboard_init();
+    rtc_init();
 //drush8, now we only enable the keyboard.
 
     sti();
