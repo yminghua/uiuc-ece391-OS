@@ -28,6 +28,10 @@
 .global	RTC_Interrupt
 .global	System_calls
 
+.global	test_Divide_Error
+.global	test_REVERSED
+.global	test_System_calls
+
 
 # for each exception, send its corresponding vector index to 
 # a c function Handle_exceptions
@@ -150,6 +154,7 @@ Floating_Point_Exception:
 common_interrupt:
     call	Print_exceptions
     addl	$4, %esp
+    popfl
     popal
     iret
     
@@ -200,6 +205,19 @@ System_calls:
     popal
     sti
     iret
+
+
+test_Divide_Error:
+    int		$0
+    ret
+
+test_REVERSED:
+    int		$1
+    ret
+
+test_System_calls:
+    int		$0x80
+    ret
 
 
 

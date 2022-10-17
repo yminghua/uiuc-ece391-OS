@@ -25,7 +25,7 @@ void Init_IDT(void){
         idt[i].size = 1;    // Size of gate: 1 = 32 bits
         idt[i].reserved0 = 0;
         idt[i].dpl = 0;     // Descriptor Privilege Level for kernel is 0
-        idt[i].present = 0;
+        idt[i].present = 1;
     }
 
     for (i = 32; i < NUM_VEC; i++)  // initialize the remainig part (vector 32-255)
@@ -38,7 +38,7 @@ void Init_IDT(void){
         idt[i].size = 1;    // Size of gate: 1 = 32 bits
         idt[i].reserved0 = 0;
         idt[i].dpl = 3;     // Descriptor Privilege Level for kernel is 3
-        idt[i].present = 0;
+        idt[i].present = 1;
     }
 
     /* put exceptions table into the IDT*/
