@@ -1,0 +1,23 @@
+<=========================================================>
+<=================>    BUG LOG HEADER   <=================>
+<=========================================================>
+Assignment:
+    MP3
+CheckPoint:
+    CP1
+CreateTime:
+    2022.10.16
+
+<--------------------------------------------------------->
+                          BUG                         
+<--------------------------------------------------------->
+Time:
+    2022.10.16.
+Creator:
+    Minghua Yang
+Description:
+    When I raised an exception interrupt, e.g. int $0, it could't process the corresponding exception handler to print that
+    which exception was raised.
+Solution:
+    When initializing the IDT, I should set idt.present = 1 to show that current interrupt is used.
+
