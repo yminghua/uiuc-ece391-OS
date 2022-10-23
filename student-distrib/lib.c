@@ -8,10 +8,14 @@
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7  //LYS: This's a color?
+#define CURSORATTRIB 0x8F   //the blinking '_'
 
 static int screen_x;  //LYS: Set by us?
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
+
+//extern int minxset = 25;
+//extern int minyset = 80;    //drush8: prepare for the special situation
 
 /* void clear(void);
  * Inputs: void
@@ -24,6 +28,9 @@ void clear(void) {
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
     screen_x = screen_y = 0;//added by drush8
+
+    *(uint8_t *)(video_mem) = '_';
+    *(uint8_t *)(video_mem + 1) = CURSORATTRIB;
 }
 
 /* Standard printf().
@@ -165,22 +172,84 @@ int32_t puts(int8_t* s) {
     return index;
 }
 
+//if no enough space, shift the screen up.
+void shiftupone(){
+    memmove((void*)(video_mem), (const void*)(video_mem+80*2), 80*24*2);
+    return;
+}
+//just clear one showing one the screen
+void clearwithcursorone(){
+    //position now should be the blank..
+    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+    screen_x--;
+    if(screen_x<0){
+        screen_x = 79;
+        screen_y--;
+    }
+    if(screen_y<0){
+        screen_y = 0;
+        screen_x = 0;    //well, it is the last one...
+    }
+    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = '_';
+    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = CURSORATTRIB;    
+    return; //here we don not return 0 or 1 to stand if there is sth. cleared successfully.
+}
+
+void clearwithcursor(int32_t num, int32_t complementnum){
+    int i;
+    if(num!=0){//means it is not a new line situation. now for cp2, num can only be 1or4    
+        for(i=0;i<num;i++){
+            clearwithcursorone();
+        }
+    }
+    else{//deal with new line backtrace, num should be 0;
+        if(screen_y == 0) return; //cannot clear the \n anymore
+        screen_y--;
+        screen_x = complementnum;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = '_';
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = CURSORATTRIB;     
+    }
+
+    return;
+    //again. don't check for the success.
+}
+
+
 /* void putc(uint8_t c);
  * Inputs: uint_8* c = character to print
  * Return Value: void
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
-    if(c == '\n' || c == '\r') {
-        screen_y++;
-        screen_y %= NUM_ROWS;       //line added by drush8
+    if(c == '\n' || c == '\r') {    //there will never be situation that '\r' appears on the screen...
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;    //clean the cursor
+        if(++screen_y == 25) {
+            shiftupone();
+            screen_y--;
+        }
         screen_x = 0;
-    } else {
+    } 
+    else {
+    int i=0,j = 1;
+    if(c == '\t') {j = 4; c = ' ';}
+    for (i=0;i<j;i++){
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
-        screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+
+        if(screen_x == 80){
+            screen_x = 0;
+            if(++screen_y == 25) {
+                shiftupone();
+                screen_y--;
+            }
+        }
     }
+    }
+    //drow the cursor at the null space
+    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = '_';
+    *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = CURSORATTRIB;
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);
