@@ -2,7 +2,7 @@
 # vim:ts=4 noexpandtab
 
 #define ASM     1
-# include "x86_desc.h"
+#include "x86_desc.h"
 
 .text
 
@@ -112,3 +112,5 @@ gdt_desc_ptr:
 .long gdt # <gdt address>
 
 .align 16 
+
+

@@ -4,10 +4,14 @@
 
 #include "multiboot.h"
 #include "x86_desc.h"
+#include "x86_page.h" //LYS
+#include "idt.h" //LYS
 #include "lib.h"
 #include "i8259.h"
 #include "debug.h"
 #include "tests.h"
+#include "e391device.h"
+#include "intrexcenum.h"
 
 #define RUN_TESTS
 
@@ -136,8 +140,14 @@ void entry(unsigned long magic, unsigned long addr) {
         ltr(KERNEL_TSS);
     }
 
+    Init_IDT(); //LYS
+
+    /* LYS: Init and enable paging */
+    init_paging();
+
     /* Init the PIC */
     i8259_init();
+
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
@@ -146,8 +156,14 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
-    /*printf("Enabling Interrupts\n");
-    sti();*/
+
+    //interrupt work begin :: drush8
+    printf("Enabling Interrupts\n");
+    keyboard_init();
+    rtc_init();
+//drush8, now we only enable the keyboard.
+
+    sti();
 
 #ifdef RUN_TESTS
     /* Run tests */

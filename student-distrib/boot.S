@@ -28,7 +28,7 @@ continue:
     lgdt gdt_desc_ptr
 
     # initialize the IDT
-    pushl	%eax
+    /*pushl	%eax
     pushl	%ecx
     pushl	%edx
 
@@ -36,17 +36,18 @@ continue:
     
     popl	%edx
     popl	%ecx
-    popl	%eax
+    popl	%eax*/
     
-    # Load the IDT
+    # Load the IDT. Load it first, bu not initialize it yet.
     lidt idt_desc_ptr
 
     # Load CS with the new descriptor value
     ljmp    $KERNEL_CS, $keep_going
 
+
 keep_going:
     # Set up ESP so we can have an initial stack
-    movl    $0x800000, %esp
+    movl    $0x800000, %esp  #LYS. 8MB
 
     # Set up the rest of the segment selector registers
     movw    $KERNEL_DS, %cx
