@@ -3,7 +3,14 @@
 #include "e391keyboard.h"
 #include "lib.h"
 
-int32_t terminal_read(void *buf, int32_t nbytes){
+//create by drush8
+
+/*   terminal_read
+ *   Function: syscall-like device driver 
+ *   Inputs: none
+ *   Return Value: none
+ */
+int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes){
     if (buf == NULL) return 1;  //case: invalid input
     int flags,i,num=0;
     uint8_t ln = 0;
@@ -41,15 +48,23 @@ int32_t terminal_read(void *buf, int32_t nbytes){
     return num;
 }
 
-int32_t terminal_write(const void* buf, int32_t nbytes){
+/*   terminal_write
+ *   Function: syscall-like device driver 
+ *   Inputs: none
+ *   Return Value: none
+ */
+int32_t terminal_write(int32_t fd,const void* buf, int32_t nbytes){
     //should always success...
+    //for \0 we terminal_write donnot print it to the screen
     //printf("writebegin\n");
     int i,total = 0;
     if (buf == NULL) return 1;  //case: invalid input
 
     for(i=0;i<nbytes;i++){
         //if(*((uint8_t *)buf)=='\0') break;       //meet null,we stop.
-        if(*((uint8_t *)buf)!='\b') putc(*((uint8_t *)buf));
+        if(*((uint8_t *)buf)!='\b'){ 
+            if(*((uint8_t *)buf)!='\0') putc(*((uint8_t *)buf));
+        }
         else {
             clearwithcursor(1,0);                //most situation(even in all situation), this divagence won't happen
             if(total > 0 ) total--;
@@ -60,7 +75,24 @@ int32_t terminal_write(const void* buf, int32_t nbytes){
     //printf("writeend\n");
     return i;               //always write 'nbytes' successfully
 }
-int32_t terminal_open(void){
+
+
+
+/*   
+ *   
+ *   below two are special in func meaning.
+ *   
+ */
+
+
+
+
+/*   terminal_open
+ *   Function: syscall-like device driver 
+ *   Inputs: none
+ *   Return Value: none
+ */
+int32_t terminal_open(const unsigned char* filename){
     kb_init();
     clear();
     //just initialize the whole buffer in keyboard and clean the screen
@@ -68,8 +100,12 @@ int32_t terminal_open(void){
 }
 
 
-
-int32_t terminal_close(void){
+/*   terminal_close
+ *   Function: syscall-like device driver 
+ *   Inputs: none
+ *   Return Value: none
+ */
+int32_t terminal_close(int fd){
     kb_init();
     clear();
     //we shouldn't close it! even if we do so, we just regard it as a reinitializing act.

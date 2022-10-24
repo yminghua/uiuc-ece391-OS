@@ -10,7 +10,7 @@
 #define RTC_SELECTOR 0x70
 #define RTC_RW 0x71
 #define RTC_RA 0x8A
-#define RTC_RB 0x8B
+#define RTC_RB 0x8B         //ABOVE ARE all ports num
 
 
 /*   rtc_handler

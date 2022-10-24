@@ -191,7 +191,7 @@ void clearwithcursorone(){
     *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
     screen_x--;
     if(screen_x<0){
-        screen_x = 79;
+        screen_x = 79;      //80-1, the final coloum index
         screen_y--;
     }
     if(screen_y<0){
@@ -235,7 +235,7 @@ void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {    //there will never be situation that '\r' appears on the screen...
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;    //clean the cursor
-        if(++screen_y == 25) {
+        if(++screen_y == 25) {      //overflow line index: 24+1
             shiftupone();
             screen_y--;
         }
@@ -243,15 +243,15 @@ void putc(uint8_t c) {
     } 
     else {
     int i=0,j = 1;
-    if(c == '\t') {j = 4; c = ' ';}
+    if(c == '\t') {j = 4; c = ' ';}         //for tab, we print 4 " ".
     for (i=0;i<j;i++){
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
 
-        if(screen_x == 80){
+        if(screen_x == 80){         //maximun coloum
             screen_x = 0;
-            if(++screen_y == 25) {
+            if(++screen_y == 25) {  //maximun row
                 shiftupone();
                 screen_y--;
             }

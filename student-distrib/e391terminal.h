@@ -8,10 +8,10 @@
 
 
 //keep the form that syscall used.
-extern int32_t terminal_read(void *buf, int32_t nbytes);
-extern int32_t terminal_write(const void* buf, int32_t nbytes);
-extern int32_t terminal_open(void);
-extern int32_t terminal_close(void);
+extern int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes);
+extern int32_t terminal_write(int32_t fd,const void* buf, int32_t nbytes);
+extern int32_t terminal_open(const unsigned char* filename);
+extern int32_t terminal_close(int fd);
 
 extern volatile int if9pressed;
 

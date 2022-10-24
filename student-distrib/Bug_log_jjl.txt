@@ -1,0 +1,15 @@
+======CP1======
+==bug for KB==
+bug1: not deal with the released scancode.
+
+
+
+======CP2======
+==bug for terminal and kb driver==
+==KB==
+bug1. scrolling needs to clear the final line.
+bug2. we shouldn't let the '\0' char goes into the KB buffer.
+bug3. backspace should also deal with tab and \n simoutaniously.
+==terminal==
+bug1. read should retrun when there is a line and meet a \n, or * there is a line and translated buf is full(reach the nbytes).
+bug2. don't forget the illegal checking.

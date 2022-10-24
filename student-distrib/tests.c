@@ -184,10 +184,10 @@ int kbAndterminal_test(){
 	printf("lines containing 9 or 8 or 7 will terminate this tests .\n");
 	int num=40,flag=FAIL,readnum;
 	char testbuf[40];
-	terminal_open();
+	terminal_open(NULL);
 	while(1){
-		readnum = terminal_read((void *)testbuf,num);
-		if(terminal_write((void *)testbuf,readnum)>readnum) break;
+		readnum = terminal_read(0,(void *)testbuf,num);
+		if(terminal_write(0,(void *)testbuf,readnum)>readnum) break;
 		if(if9pressed==0){
 			flag =PASS;
 			break;
