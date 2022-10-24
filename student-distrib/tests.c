@@ -3,8 +3,9 @@
 #include "x86_page.h" //LYS
 #include "types.h" //LYS
 #include "lib.h"
-#include "e391device.h"//drush8: can be cancelled when we doesn't use cp1: pageF test
+//#include "e391device.h"//drush8: can be cancelled when we doesn't use cp1: pageF test
 #include "e391terminal.h"
+#include "rtc.h" //yst
 
 #define PASS 1
 #define FAIL 0 
@@ -163,7 +164,7 @@ int div0_test(){
 /* Checkpoint 2 tests */
 
 
-/* pageFexception Test - Drush8
+/* kbAndterminal Test - Drush8
  * 
  * first kb buffer, then terminal read&write test
  * Inputs: None
@@ -193,6 +194,50 @@ int kbAndterminal_test(){
 	return flag;
 }
 
+/* rtc Test - Drush8
+ * 
+ * frequency testing
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Coverage: terminal & kb driver
+ * Files: rtc.c/h
+ */
+int rtc_test(){
+
+	// clean the screen
+	int c;
+	for(c=0;c<=2;c++){ //clean 26 line
+		printf("\n");
+	}
+	// the test part
+	int32_t i=0;
+	int test_f[7]={2,4,8,16,32,64,5}; // test 6 legal and one illegal, they are the frequence
+	printf("\n       RTC test       \n");
+	printf("\n test 6 legal and one illegal f                               \n");
+	rtc_open(0); // set to 2 Hz
+	int r=0;
+	int count;
+
+	// 7 frequences in test_f
+	while(i<7){
+		count=0;
+		printf("            \n now, the f is %d Hz                          \n", test_f[i]);
+		if(rtc_write(0, &test_f[i], 4)==0){ // set the new f
+			// print 20 characters
+			while(count<20){
+					rtc_read(0, &r, 4); // 4 is to make function work
+			putc('@');
+				count++;
+			}
+		}
+		else printf("illegal frequency not power of 2\n");
+		i++;
+
+	}
+	return PASS;
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -200,6 +245,8 @@ int kbAndterminal_test(){
 
 /* Test suite entry point */
 void launch_tests(){
+
+	//C P 1 : T E S T I N G 
 	//TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
 	//TEST_OUTPUT("page_test", page_test());
@@ -210,5 +257,9 @@ void launch_tests(){
 	//TEST_OUTPUT("PageFault_test", pageFexception_test());
 
 
+
+
+	//C P 2 : T E S T I N G 
 	TEST_OUTPUT("keyboardbAndterminal_test", kbAndterminal_test());
+	TEST_OUTPUT("rtcFrequency_test", rtc_test());
 }
