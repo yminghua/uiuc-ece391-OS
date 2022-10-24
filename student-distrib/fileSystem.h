@@ -73,5 +73,7 @@ extern void init_fileSys(uint32_t* filesys_addr);
 
  /**************** test operations ****************/
  extern void list_all_files();
+ extern void list_all_files_by_name();
+ extern void read_file_i(int f_idx);
 
 #endif /* _FILESYSTEM_H */

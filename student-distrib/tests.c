@@ -144,8 +144,20 @@ int pageFexception_test(){
 // add more tests here
 
 /* Checkpoint 2 tests */
-void read_dentry_by_index_test() {
+void list_all_files_test() {
 	list_all_files();
+}
+
+void print_fish_test() {
+	read_file_i(10);
+}
+
+void print_exe_test() {
+	read_file_i(16);
+}
+
+void clear_screen() {
+	clear();
 }
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -154,8 +166,9 @@ void read_dentry_by_index_test() {
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
+	//TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
-	list_all_files();
-
+	//list_all_files_test();
+	clear_screen();
+	print_exe_test();
 }
