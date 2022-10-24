@@ -84,6 +84,8 @@ extern void init_fileSys(uint32_t* filesys_addr);
 
  extern void file_OpenRead_test();
 
+ extern void Print_files_test();
+
  extern void dir_OpenRead_test(int fd);
 
  extern void Print_dir_test();

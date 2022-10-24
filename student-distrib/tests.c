@@ -171,9 +171,9 @@ void launch_tests(){
 	//TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
 
-	clear_screen();
-	// file_OpenRead_test();
-	Print_dir_test();
+	Print_files_test();
+	
+	// Print_dir_test();
 
 }
 

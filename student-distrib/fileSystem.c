@@ -4,6 +4,7 @@
 
 #include "fileSystem.h"
 #include "lib.h"
+#include "rtc.h"
 
 
 /* !!!every passed in file name must be exact 32 bytes with zero padding!!! (write a transform function to do that) */
@@ -415,10 +416,12 @@ void read_file_i(int f_idx) {
 /*
  * test file_open and file_read
  */
-void file_OpenRead_test() {
+void file_OpenRead_test(int idx) {
+
+    clear();
 
     fill_fname_list();
-    uint8_t* fname = all_fname_list[15];    // in this case: read "frame1.txt" (index is 15 in all_fname_list)
+    uint8_t* fname = all_fname_list[idx];    // for example: read "frame1.txt" (index is 15 in all_fname_list)
 
     /* set the file descriptor information */
 	int fd = 1;
@@ -427,21 +430,19 @@ void file_OpenRead_test() {
     Temp_fd_array[fd].flags = 0;
 
 	int check = file_open(fname, fd);
-	if (check == 0) {
-        printf("Open ");
-        printf((int8_t*)fname);
-		printf(" successfully!\n");
-    }
-	else
-		printf("file_open FAIL! \n");
+	// if (check == 0) {
+    //     printf("Open ");
+    //     printf((int8_t*)fname);
+	// 	printf(" successfully!\n");
+    // }
+	// else
+	// 	printf("file_open FAIL! \n");
 	
 	int32_t i, count;
     int new_line = 0;
 	uint8_t buf[100000];    // set large enough number for buffer size
 	count = file_read(fd, buf, 100000);
 	// printf("Successfully read %d Bytes!\n", count);
-    printf((int8_t*)fname);
-    printf(":\n");
 	for (i = 0; i < count; i++) {
         if (buf[i] != '\0') {
             putc(buf[i]);
@@ -450,10 +451,51 @@ void file_OpenRead_test() {
             if (new_line>=80) {putc('\n'); new_line=0;}     // number of display screen column is 80
         }
 	}
+    printf("\n");
+    printf("file_name: ");
+    printf((int8_t*)fname);
+    printf("\n");
 
 	file_close(fd);
 
     return;
+}
+
+/*
+ * print all the files as required
+*/
+void Print_files_test() {
+
+    int i=1;
+    int j;
+    rtc_open(0);
+    for(j=0;j<=5;j++){
+        rtc_read(0,&i,4);
+    }
+    file_OpenRead_test(10);
+    for(j=0;j<=5;j++){
+        rtc_read(0,&i,4);
+    }
+    file_OpenRead_test(15);
+    for(j=0;j<=5;j++){
+        rtc_read(0,&i,4);
+    }
+    file_OpenRead_test(3);
+    for(j=0;j<=5;j++){
+        rtc_read(0,&i,4);
+    }
+    file_OpenRead_test(12);
+    for(j=0;j<=5;j++){
+        rtc_read(0,&i,4);
+    }
+    file_OpenRead_test(6);
+    for(j=0;j<=5;j++){
+        rtc_read(0,&i,4);
+    }
+    file_OpenRead_test(11);
+
+    return;
+
 }
 
 
@@ -478,6 +520,8 @@ void dir_OpenRead_test(int fd) {
  * print the infomation for all files in the directory
  */
 void Print_dir_test() {
+
+    clear();
 
     /* set the file descriptor information */
 	int fd = 0;
