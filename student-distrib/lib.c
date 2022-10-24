@@ -182,7 +182,9 @@ void shiftupone(){
     }
     return;
 }
-//just clear one showing one the screen
+
+
+//just clear one showing the screen
 void clearwithcursorone(){
     //position now should be the blank..
     *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
@@ -201,6 +203,7 @@ void clearwithcursorone(){
     return; //here we don not return 0 or 1 to stand if there is sth. cleared successfully.
 }
 
+// clear num char showing the screen
 void clearwithcursor(int32_t num, int32_t complementnum){
     int i;
     if(num!=0){//means it is not a new line situation. now for cp2, num can only be 1or4    
@@ -227,6 +230,7 @@ void clearwithcursor(int32_t num, int32_t complementnum){
  * Inputs: uint_8* c = character to print
  * Return Value: void
  *  Function: Output a character to the console */
+//improved putc::fixed by drush8
 void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {    //there will never be situation that '\r' appears on the screen...
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';

@@ -5,9 +5,11 @@
 #include "types.h"
 #include "e391keyboard.h"
 //#include "e391device.h"   used in cp1, now has been abandoned
+
+//create by drush8
+
 //MP3.2code:
 //below is the struct for the KB
-
 #define POS(x)  ((x)%128)
 #define DIFF(x,y) (x+128-y)%128
 /*****status of the key board, used for the state divides*****/
@@ -135,11 +137,14 @@ uint32_t kb_init(){
   return 0;
 }
 
+//setting the offset.
+//(may used in cp3, make sure backspace won't clean the prompt of the shell)
 uint32_t kb_setoffset(int n){
   kbstatus.setoffset = n;
   return 0;
 }
 
+//assistance func: return the last line length in th ebuf.
 int lengthbetween(int index){
   int num=0;
   while(index != kbbuf.biteBP && kbbuf.bitebuf[DIFF(index,1)]!='\n'){
@@ -264,9 +269,10 @@ char asciitranslate(int c){
 
 //this func only used for testing in cp3.1 & 3.2 now...
 //set the is9pressedset according to the keyvoard pressing...
+//9,8,7 and 0,-1,-2 are used to control the tests. free to use them to build your continuous tests!!! drush8
 void is9pressedset(int b){
             ////////
-  if (b == '9') {                        //9 stands for the RTB mode open
+  if (b == '9') {                        
     if(if9pressed == 0)if9pressed=1; 
     else if9pressed =0;
   }
@@ -274,7 +280,7 @@ void is9pressedset(int b){
   if (b == '8') {
     if(if9pressed == 0)if9pressed=-2; 
     else if9pressed =0;}
-  if (b == '7') if9pressed = -1;         //7 opens the final PF test.
+  if (b == '7') if9pressed = -1;         
     ////////warning: the code here is created only for cp1.
 }
 

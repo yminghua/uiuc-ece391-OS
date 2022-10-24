@@ -216,7 +216,7 @@ int rtc_test(){
 	int32_t i=0;
 	int test_f[7]={2,4,8,16,32,64,5}; // test 6 legal and one illegal, they are the frequence
 	printf("\n       RTC test       \n");
-	printf("\n test 6 legal and one illegal f                               \n");
+	printf("\n test 6 legal and one illegal frequency                    \n");
 	rtc_open(0); // set to 2 Hz
 	int r=0;
 	int count;
@@ -233,7 +233,7 @@ int rtc_test(){
 				count++;
 			}
 		}
-		else printf("illegal frequency not power of 2\n");
+		else printf("illegal frequency %d not power of 2\n", test_f[i]);
 		i++;
 
 	}
