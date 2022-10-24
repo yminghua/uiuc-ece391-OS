@@ -92,3 +92,10 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     }
     return count;
 }
+
+/*list_all_files()
+ * description: list all files in the file system, for testing purpose
+ */
+void list_all_files() {
+    
+}
