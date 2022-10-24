@@ -25,7 +25,8 @@ int32_t terminal_read(void *buf, int32_t nbytes){
             kbstatus.terminalreading = 0;
             restore_flags(flags);
             *((char *)buf++) = '\n';
-            *((char *)buf) = '\0';
+
+            if(num+1<nbytes) *((char *)buf) = '\0'; //if there is spare room, we kindly add a \0 for it.
             return num+1;
         }
         num++;
@@ -35,7 +36,8 @@ int32_t terminal_read(void *buf, int32_t nbytes){
     kbstatus.terminalreading = 0;
     restore_flags(flags);
     //now num is equal to the nbytes..
-    *((char *)buf) = '\0';
+    //BUG:if the buffer is full, we do not add a \0 anymore
+    //*((char *)buf) = '\0';
     return num;
 }
 
@@ -46,7 +48,7 @@ int32_t terminal_write(const void* buf, int32_t nbytes){
     if (buf == NULL) return 1;  //case: invalid input
 
     for(i=0;i<nbytes;i++){
-        if(*((uint8_t *)buf)=='\0') break;       //meet null,we stop.
+        //if(*((uint8_t *)buf)=='\0') break;       //meet null,we stop.
         if(*((uint8_t *)buf)!='\b') putc(*((uint8_t *)buf));
         else {
             clearwithcursor(1,0);                //most situation(even in all situation), this divagence won't happen

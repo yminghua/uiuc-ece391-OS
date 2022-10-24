@@ -140,13 +140,29 @@ int pageFexception_test(){
 	*p = 999;
 	return PASS; //this should not be reached.
 }
+/* div0 Test - Drush8
+ * 
+ * Asserts that if we see xx/0, will the Blue Screen
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Coverage: exception handler, page
+ * Files: idt.c/h, e391exception.c/h
+ */
+int div0_test(){
+	TEST_HEADER;
+	int p;
+	printf("\n\n final eception test, if the blue screen exception is DIV0 Fail,\n it will stands as pass.\n\n\n");
+	while(if9pressed!=-1);
+	p/=0;
+	return PASS; //this should not be reached.
+}
 
 // add more tests here
 
 /* Checkpoint 2 tests */
 
 
-int kbAndterminal_test(){
 /* pageFexception Test - Drush8
  * 
  * first kb buffer, then terminal read&write test
@@ -156,6 +172,8 @@ int kbAndterminal_test(){
  * Coverage: terminal & kb driver
  * Files: e391keyboard.c/h, e391terminal.c/h
  */
+int kbAndterminal_test(){
+
 	TEST_HEADER;
 	printf("kb testing, type what you want(maximun128 char)...\n");
 	printf("set 8 to make sure that test goes to terminal tests.\n");
@@ -166,7 +184,7 @@ int kbAndterminal_test(){
 	terminal_open();
 	while(1){
 		readnum = terminal_read((void *)testbuf,num);
-		if(terminal_write((void *)testbuf,num)>readnum) break;
+		if(terminal_write((void *)testbuf,readnum)>readnum) break;
 		if(if9pressed==0){
 			flag =PASS;
 			break;
