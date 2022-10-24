@@ -175,7 +175,7 @@ uint32_t kbbufpop(){
   if(dchar == '\t'){
     clearwithcursor(4,0);
   }
-  if(dchar != '\t' && dchar != '\n' && dchar != '\0'){
+  if(dchar != '\t' && dchar != '\n' && dchar != '\0'){      //safety check for the \0
     clearwithcursor(1,0);
   }
 
@@ -195,7 +195,7 @@ uint32_t kbbufpush(uint8_t bite){
   kbbuf.biteEP = POS(kbbuf.biteEP+1);
   kbbuf.bitenum++;
   if (kbstatus.echo == 0) return 0; //if the echo is closed, don't care about the screen.
-  if(bite != '\0' ) putc(bite);
+  if(bite != '\0' ) putc(bite); //safety check: drush8
   //well echo is 1 , we need to put it on the screen
   return 0;
 }
@@ -343,6 +343,7 @@ void keyboard_handler(void){
             if(kbstatus.controlpressed>0) {ctrllfunc();break;}    //here we clean the screen, but not the buf of keyboard.
           default:
             asciicode = asciitranslate(scancode);
+            if(asciicode == '\0') break;                          //useless or the situation we dont consider, as if it is untyped by the kb.
             if(kbstatus.kbalready ==1) kbbufpush(asciicode);
             is9pressedset(asciicode); //only used for the testing argument setting.
           }
@@ -372,7 +373,7 @@ void keyboard_handler(void){
       else{   //now is in the multiscancode situation
           kbstatus.multiscanmode--;
           //if(scancode == LCTRL_P) kbstatus.controlpressed ++;  //well this means the right control is pressed now.
-          //if(scancode == LCTRL_P+0x80) kbstatus.controlpressed --;//it is released!!
+          //if(scancode == LCTRL_P+0x80 && kbstatus.controlpressed>0) kbstatus.controlpressed --;//it is released!!
       }
     }    
 

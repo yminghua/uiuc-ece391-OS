@@ -152,10 +152,11 @@ int pageFexception_test(){
  */
 int div0_test(){
 	TEST_HEADER;
-	int p;
+	int p = 9;
+	p+=1;
 	printf("\n\n final eception test, if the blue screen exception is DIV0 Fail,\n it will stands as pass.\n\n\n");
 	while(if9pressed!=-1);
-	p/=0;
+	// p/=0;                                              //make sure there is no warning in compiling, if want test div0, please set is open
 	return PASS; //this should not be reached.
 }
 
