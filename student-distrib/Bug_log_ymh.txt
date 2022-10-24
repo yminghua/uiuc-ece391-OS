@@ -12,7 +12,7 @@ CreateTime:
                           BUG                         
 <--------------------------------------------------------->
 Time:
-    2022.10.16.
+    2022.10.16
 Creator:
     Minghua Yang
 Description:
@@ -21,3 +21,26 @@ Description:
 Solution:
     When initializing the IDT, I should set idt.present = 1 to show that current interrupt is used.
 
+
+<=========================================================>
+<=================>    BUG LOG HEADER   <=================>
+<=========================================================>
+Assignment:
+    MP3
+CheckPoint:
+    CP2
+CreateTime:
+    2022.10.22
+
+<--------------------------------------------------------->
+                          BUG                          
+<--------------------------------------------------------->
+Time:
+    2022.10.22
+Creator:
+    Minghua Yang
+Description:
+    After executing function read_dentry_by_name, I found that the file_type and inode_index in the corresponding dentry is all 0, so the addresses
+    we calculate to get these value are wrong.
+Solution:
+    When calculating the offset, I need to add one more dentry_size since the first block is boot_block.
