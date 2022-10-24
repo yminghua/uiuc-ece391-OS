@@ -13,7 +13,7 @@ extern int32_t terminal_write(const void* buf, int32_t nbytes);
 extern int32_t terminal_open(void);
 extern int32_t terminal_close(void);
 
-
+extern volatile int if9pressed;
 
 
 

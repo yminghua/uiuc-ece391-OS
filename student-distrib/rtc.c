@@ -84,7 +84,7 @@ int rtc_open(const unsigned char* filename){
  * Function:  Read once interrupt occur
  */
 int rtc_read(int fd, void* buf, int nbytes){
-    
+
     rtc_interrupt_occur=0;
     // wait
 
@@ -148,7 +148,7 @@ int rtc_reset_freq(int freq){
 
     // check not 2^n data, print wrong
     if(inputa==-1){
-        printf("\n illegal input freq, must be the power of 2 and <1024 \n");
+        //printf("\n illegal input freq, must be the power of 2 and <1024 \n");
         return -1;
     }
 

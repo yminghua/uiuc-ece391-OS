@@ -1,10 +1,10 @@
 #include "lib.h"
-#include "e391device.h"
 #include "e391synchronize.h"
 #include "i8259.h"
 #include "intrexcenum.h"
 #include "types.h"
 #include "e391keyboard.h"
+//#include "e391device.h"   used in cp1, now has been abandoned
 //MP3.2code:
 //below is the struct for the KB
 

@@ -10,9 +10,10 @@
 #include "i8259.h"
 #include "debug.h"
 #include "tests.h"
-#include "e391device.h"
 #include "e391keyboard.h"
 #include "intrexcenum.h"
+#include "rtc.h"
+//#include "e391device.h"       used in cp1, now is useless
 
 #define RUN_TESTS
 

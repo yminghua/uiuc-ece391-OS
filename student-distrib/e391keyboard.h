@@ -32,6 +32,7 @@ typedef struct kbstatus {
     volatile uint8_t flag;           //means if this structure stable.1 stands busy. Will be changed to locks in the future for the multi_core.
 } kbstatus_t;
 
+extern volatile int if9pressed;
 
 //warning:: kb_buf should be pretected by the kbstatus
 /*****structure, which is also needed for the terminal*****/

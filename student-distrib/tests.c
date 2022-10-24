@@ -176,10 +176,11 @@ int div0_test(){
 int kbAndterminal_test(){
 
 	TEST_HEADER;
-	printf("kb testing, type what you want(maximun128 char)...\n");
+	printf("\n\n kb testing, type what you want(maximun128 char)...\n");
 	printf("set 8 to make sure that test goes to terminal tests.\n");
 	while(if9pressed!=-2);
 	printf("terminal testing, type lines to see if it is correct.\n");
+	printf("lines containing 9 or 8 or 7 will terminate this tests .\n");
 	int num=40,flag=FAIL,readnum;
 	char testbuf[40];
 	terminal_open();
