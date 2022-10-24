@@ -342,7 +342,7 @@ void launch_tests(){
 
 	//C P 2 : T E S T I N G 
 	TEST_OUTPUT("keyboardbAndterminal_test", kbAndterminal_test());
-	//TEST_OUTPUT("rtcFrequency_test", rtc_test());
+	TEST_OUTPUT("rtcFrequency_test", rtc_test());
 	TEST_OUTPUT("F_Print_dir_test", F_Print_dir_test());
 	TEST_OUTPUT("F_syslike_openread_test", F_syslike_openread_test());
 	printf("\n additional files read tests:: small exec and large exec...\n");
