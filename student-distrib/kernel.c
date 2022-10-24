@@ -11,6 +11,7 @@
 #include "debug.h"
 #include "tests.h"
 #include "e391device.h"
+#include "e391keyboard.h"
 #include "intrexcenum.h"
 
 #define RUN_TESTS

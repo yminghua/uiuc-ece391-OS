@@ -11,7 +11,7 @@
 #define POS(x)  ((x)%128)
 #define DIFF(x,y) (x+128-y)%128
 /*****status of the key board, used for the state divides*****/
-volatile kbstatus_t kbstatus={0,0,0,0,0,0,0,0,0,0};
+kbstatus_t kbstatus={0,0,0,0,0,0,0,0,0,0};
 kb_buf_t kbbuf;
 
 //the standard scan code of the keyboard to ascii reference, we only complete part of them (including cahr and number)
@@ -140,6 +140,18 @@ uint32_t kb_setoffset(int n){
   return 0;
 }
 
+int lengthbetween(int index){
+  int num=0;
+  while(index != kbbuf.biteBP && kbbuf.bitebuf[DIFF(index,1)]!='\n'){
+    index = DIFF(index,1);
+    if(kbbuf.bitebuf[index] != '\0'){
+      if(kbbuf.bitebuf[index] == '\t') num+=4;
+      else num+=1;
+    } 
+  }
+  return num;
+}
+
 //pop out the highest one char in the queue.(used by the backspace)
 uint32_t kbbufpop(){
   if(kbbuf.bitenum==0) return 1;   //no char anymore.
@@ -154,8 +166,10 @@ uint32_t kbbufpop(){
 
   if(dchar == '\n'){
     int c;
-    if (kbbuf.linenum!=0) c = DIFF(kbbuf.biteEP, kbbuf.linelocbuf[kbbuf.lineEP])-1;
-    else c = DIFF(kbbuf.biteEP, kbbuf.biteBP)+kbstatus.setoffset;   //here for example, offset is num char of shell's prompt 
+    //if (kbbuf.linenum!=0) c = DIFF(kbbuf.biteEP, kbbuf.linelocbuf[kbbuf.lineEP-1])-1;
+    //else c = DIFF(kbbuf.biteEP, kbbuf.biteBP)+kbstatus.setoffset;   //here for example, offset is num char of shell's prompt 
+    //it is very sad that above method is useless on special situation...
+    c = lengthbetween(kbbuf.biteEP);
     clearwithcursor(0,c);
   }
   if(dchar == '\t'){
@@ -171,13 +185,15 @@ uint32_t kbbufpop(){
 
 //push one char into the buffer. 
 uint32_t kbbufpush(uint8_t bite){
-  if(kbbuf.bitenum == 127 && bite !='\n') return 1; //buffer is almost full, we only accept '\n' for nearly full buffer.
+  if(kbbuf.bitenum >= 127 && bite !='\n') return 1; //buffer is almost full, we only accept '\n' for nearly full buffer.
   if(bite == '\n'){
     kbbuf.linelocbuf[kbbuf.lineEP] = kbbuf.biteEP;
     kbbuf.lineEP = POS(kbbuf.lineEP+1);
+    kbbuf.linenum++;
   }
   kbbuf.bitebuf[kbbuf.biteEP] = bite;
   kbbuf.biteEP = POS(kbbuf.biteEP+1);
+  kbbuf.bitenum++;
   if (kbstatus.echo == 0) return 0; //if the echo is closed, don't care about the screen.
   if(bite != '\0' ) putc(bite);
   //well echo is 1 , we need to put it on the screen
@@ -194,6 +210,7 @@ uint32_t kbbufconsume(){
   }
   kbbuf.bitenum--;
   kbbuf.biteBP=POS(kbbuf.biteBP+1);
+  return c;
 }
 
 //below three func should be called in critical section. thay are used to protecting the structure.
@@ -202,22 +219,27 @@ uint32_t kbbufconsume(){
 //2. well, it is just a 1-core machine. We just make sure that terminal fetch with if =0.
 uint32_t kbwaituntilfree(){
   //won't used, until we try to do the improvement..
+  return 0;
 }
 uint32_t kbsetfree(){
   kbstatus.flag = 0;
+  return 0;
 }
 uint32_t kbsetbusy(){
   kbstatus.flag = 1;
+  return 0;
 }
 
 
 //below two will used by terminal reading. related to the crtl+l functionality.
 uint32_t kbsetreading(){
   kbstatus.terminalreading = 1;
+    return 0;
 }
 
 uint32_t kbunsetreading(){
   kbstatus.terminalreading = 0;
+    return 0;
 }
 
 
@@ -227,8 +249,8 @@ uint32_t kbunsetreading(){
 void ctrllfunc(){
   if(kbstatus.terminalreading == 0){
     kb_init();
-    clear();
   }
+  clear();
 }
 
 //do scancode to ascii code translation
@@ -249,7 +271,9 @@ void is9pressedset(int b){
     else if9pressed =0;
   }
 
-  if (b == '8') if9pressed = -2;         //8 stands for the test phase going
+  if (b == '8') {
+    if(if9pressed == 0)if9pressed=-2; 
+    else if9pressed =0;}
   if (b == '7') if9pressed = -1;         //7 opens the final PF test.
     ////////warning: the code here is created only for cp1.
 }
@@ -314,9 +338,9 @@ void keyboard_handler(void){
             break;
           case BACKSPACE_P:
             if(kbstatus.kbalready == 1) kbbufpop();
-          case L_P:   //is l pressed?
-            if(kbstatus.controlpressed!=0) ctrllfunc();       //here we clean the screen, but not the buf of keyboard.
             break;
+          case L_P:   //is l pressed?
+            if(kbstatus.controlpressed>0) {ctrllfunc();break;}    //here we clean the screen, but not the buf of keyboard.
           default:
             asciicode = asciitranslate(scancode);
             if(kbstatus.kbalready ==1) kbbufpush(asciicode);
@@ -327,18 +351,19 @@ void keyboard_handler(void){
           scancode -=0x80;
                     switch(scancode) {
           case LCTRL_P: 
-            kbstatus.controlpressed--;
+            if(kbstatus.controlpressed>0) kbstatus.controlpressed--;
             break;
           case LSHIFT_P: 
-            kbstatus.shiftpressed--;
+            if(kbstatus.shiftpressed>0) kbstatus.shiftpressed--;
             break;
           case LALT_P: 
-            kbstatus.altpressed--;
+            if(kbstatus.altpressed>0) kbstatus.altpressed--;
             break;
           case RSHIFT_P: 
-            kbstatus.shiftpressed--;
+            if(kbstatus.shiftpressed>0) kbstatus.shiftpressed--;
             break;
           default:
+            break;
           }
         }
         //putc(std_scancodetoascii[scancode]);
@@ -346,8 +371,8 @@ void keyboard_handler(void){
 
       else{   //now is in the multiscancode situation
           kbstatus.multiscanmode--;
-          if(scancode == LCTRL_P) kbstatus.controlpressed ++;  //well this means the right control is pressed now.
-          if(scancode == LCTRL_P+0x80) kbstatus.controlpressed --;//it is released!!
+          //if(scancode == LCTRL_P) kbstatus.controlpressed ++;  //well this means the right control is pressed now.
+          //if(scancode == LCTRL_P+0x80) kbstatus.controlpressed --;//it is released!!
       }
     }    
 

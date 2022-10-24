@@ -174,7 +174,12 @@ int32_t puts(int8_t* s) {
 
 //if no enough space, shift the screen up.
 void shiftupone(){
+    int k;
     memmove((void*)(video_mem), (const void*)(video_mem+80*2), 80*24*2);
+    for(k=0;k<80;k++){
+        *(uint8_t *)(video_mem + ((NUM_COLS * 24 + k) << 1)) = ' ';
+        *(uint8_t *)(video_mem + ((NUM_COLS * 24 + k) << 1) + 1) = ATTRIB;
+    }
     return;
 }
 //just clear one showing one the screen
@@ -204,6 +209,8 @@ void clearwithcursor(int32_t num, int32_t complementnum){
         }
     }
     else{//deal with new line backtrace, num should be 0;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         if(screen_y == 0) return; //cannot clear the \n anymore
         screen_y--;
         screen_x = complementnum;

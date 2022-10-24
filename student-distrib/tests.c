@@ -4,6 +4,7 @@
 #include "types.h" //LYS
 #include "lib.h"
 #include "e391device.h"//drush8: can be cancelled when we doesn't use cp1: pageF test
+#include "e391terminal.h"
 
 #define PASS 1
 #define FAIL 0 
@@ -143,6 +144,37 @@ int pageFexception_test(){
 // add more tests here
 
 /* Checkpoint 2 tests */
+
+
+int kbAndterminal_test(){
+/* pageFexception Test - Drush8
+ * 
+ * first kb buffer, then terminal read&write test
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Coverage: terminal & kb driver
+ * Files: e391keyboard.c/h, e391terminal.c/h
+ */
+	TEST_HEADER;
+	printf("kb testing, type what you want(maximun128 char)...\n");
+	printf("set 8 to make sure that test goes to terminal tests.\n");
+	while(if9pressed!=-2);
+	printf("terminal testing, type lines to see if it is correct.\n");
+	int num=40,flag=FAIL,readnum;
+	char testbuf[40];
+	terminal_open();
+	while(1){
+		readnum = terminal_read((void *)testbuf,num);
+		if(terminal_write((void *)testbuf,num)>readnum) break;
+		if(if9pressed==0){
+			flag =PASS;
+			break;
+		}
+	}
+	return flag;
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -150,12 +182,15 @@ int pageFexception_test(){
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
+	//TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
-	TEST_OUTPUT("page_test", page_test());
-	TEST_OUTPUT("syscall_test", syscall_test());
-	TEST_OUTPUT("keyboardandRTC_test", KAndR_test());
+	//TEST_OUTPUT("page_test", page_test());
+	//TEST_OUTPUT("syscall_test", syscall_test());
+	//TEST_OUTPUT("keyboardandRTC_test", KAndR_test());
 
 	//warning: this final test will lead to the blue screen of the kernel. drush8
-	TEST_OUTPUT("PageFault_test", pageFexception_test());
+	//TEST_OUTPUT("PageFault_test", pageFexception_test());
+
+
+	TEST_OUTPUT("keyboardbAndterminal_test", kbAndterminal_test());
 }

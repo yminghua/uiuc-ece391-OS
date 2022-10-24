@@ -40,7 +40,7 @@ typedef struct kb_buf {
     uint8_t bitenum;
     uint8_t biteBP;
     uint8_t biteEP;                   //rolling buffer, has the begin pointer and the end pointer
-    uint8_t linelocbuf[129];
+    uint8_t linelocbuf[128];
     volatile uint8_t linenum;
     uint8_t lineBP;
     uint8_t lineEP;
@@ -50,8 +50,6 @@ typedef struct kb_buf {
 //         V       V
 //    ...  vvvvvvvviiiiii   ... 
 //shows that ele pointed py the head pointer is valid, but the one by tail pointer is not.
-
-
 
 //extern data.. will be used by the terminal
 extern kbstatus_t kbstatus;
@@ -67,6 +65,8 @@ extern uint32_t kbwaitfree();
 extern uint32_t kbsetfree();
 extern uint32_t kbsetbusy();
 
+void keyboard_init();
+void keyboard_handler();
 
 extern volatile int if9pressed; //drush8: used for testing in cp3.1&3.2
 /*******inline*********/

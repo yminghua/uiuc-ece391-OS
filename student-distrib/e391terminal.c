@@ -6,26 +6,34 @@
 int32_t terminal_read(void *buf, int32_t nbytes){
     if (buf == NULL) return 1;  //case: invalid input
     int flags,i,num=0;
+    uint8_t ln = 0;
     int c=0;
     cli_and_save(flags);    // now, we open the critical section.
+
     kbstatus.terminalreading = 1;
-    while(kbbuf.linenum==0){
+    while(ln==0){
         sti();
         for(i =0;i<5;i++);      //spend some time wait for the \n input... . drush8'sflag: can be sleeplock in future.
         cli();
+        ln = kbbuf.linenum; //volatile in struct seems useless...
     }
+    //printf("finish\n");
     //now there is at least one line in kb_buf
     while(num<nbytes){
         c = kbbufconsume();
         if(c == '\n'){
+            kbstatus.terminalreading = 0;
+            restore_flags(flags);
             *((char *)buf++) = '\n';
             *((char *)buf) = '\0';
-            return num++;
+            return num+1;
         }
         num++;
         *((char *)buf) = (char)c;
-        (char *)buf++;
+        buf++;
     }
+    kbstatus.terminalreading = 0;
+    restore_flags(flags);
     //now num is equal to the nbytes..
     *((char *)buf) = '\0';
     return num;
@@ -33,7 +41,8 @@ int32_t terminal_read(void *buf, int32_t nbytes){
 
 int32_t terminal_write(const void* buf, int32_t nbytes){
     //should always success...
-    int i,j;
+    //printf("writebegin\n");
+    int i,total = 0;
     if (buf == NULL) return 1;  //case: invalid input
 
     for(i=0;i<nbytes;i++){
@@ -41,9 +50,12 @@ int32_t terminal_write(const void* buf, int32_t nbytes){
         if(*((uint8_t *)buf)!='\b') putc(*((uint8_t *)buf));
         else {
             clearwithcursor(1,0);                //most situation(even in all situation), this divagence won't happen
-            i-=2;
+            if(total > 0 ) total--;
         }
+        buf++;
+        total++;
     }
+    //printf("writeend\n");
     return i;               //always write 'nbytes' successfully
 }
 int32_t terminal_open(void){
