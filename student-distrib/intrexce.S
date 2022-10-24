@@ -9,6 +9,8 @@
  * use a macro. Well just learn form the sys_call.
  */
 
+
+//we defined the assambly linkage macro to compute all the entrance of the interrrupt.
 #define INTR_LINK(name,func)   \
 .GLOBL name                   ;\
 name:                         ;\

@@ -2,6 +2,7 @@
 #include "x86_desc.h"
 #include "x86_page.h" //LYS
 #include "types.h" //LYS
+#include "fileSystem.h"
 #include "lib.h"
 #include "e391device.h"//drush8: can be cancelled when we doesn't use cp1: pageF test
 
@@ -143,6 +144,9 @@ int pageFexception_test(){
 // add more tests here
 
 /* Checkpoint 2 tests */
+void read_dentry_by_index_test() {
+	list_all_files();
+}
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -152,10 +156,6 @@ int pageFexception_test(){
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
-	TEST_OUTPUT("page_test", page_test());
-	TEST_OUTPUT("syscall_test", syscall_test());
-	TEST_OUTPUT("keyboardandRTC_test", KAndR_test());
+	list_all_files();
 
-	//warning: this final test will lead to the blue screen of the kernel. drush8
-	TEST_OUTPUT("PageFault_test", pageFexception_test());
 }

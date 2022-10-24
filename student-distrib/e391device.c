@@ -48,6 +48,12 @@ void keyboard_init(void) {
  * 
  * 
  */
+
+/*   keyboard_handler
+ *   Function: the KBUS handler
+ *   Inputs: none
+ *   Return Value: none
+ */
 void keyboard_handler(void){
     static int e0=0, e1=0;  //state despriptor, we now won't use it yet.
     //by default, we think e0 stands for 1 following 
@@ -55,19 +61,19 @@ void keyboard_handler(void){
     int scancode;
     if((inb(0x64)&1)==1){    //8042a protocol. That status bit means there is scan code available in 0x60 port.
       scancode = inb(0x60);//get the scancode.
-      if(scancode != 0xE0 && scancode != 0xE1){//situation not be e0 or e1
+      if(scancode != 0xE0 && scancode != 0xE1){//situation not be e0 or e1. e0 and e1 stands for the different Scan coede set
           if(e0!=0) e0--;
           if(e1!=0) e1--; //now we doesn't deal with special key yet.
           if(e0==0 && e1==0){//the situation that we need to put out a char to the screen
           putc(std_scancodetoascii[scancode]);
 
           ////////
-          if (std_scancodetoascii[scancode] == '9') {
-            if(if9pressed == 0)if9pressed=1;
+          if (std_scancodetoascii[scancode] == '9') {                        //9 stands for the RTB mode open
+            if(if9pressed == 0)if9pressed=1; 
             else if9pressed =0;
           }
-          if (std_scancodetoascii[scancode] == '8') if9pressed = -2; 
-          if (std_scancodetoascii[scancode] == '7') if9pressed = -1;
+          if (std_scancodetoascii[scancode] == '8') if9pressed = -2;         //8 stands for the test phase going
+          if (std_scancodetoascii[scancode] == '7') if9pressed = -1;         //7 opens the final PF test.
           ////////warning: the code here is created only for cp1.
           }
         }
@@ -118,13 +124,20 @@ void keyboard_handler(void){
  * 
  * 
 */
+
+
+/*   rtc_handler
+ *   Function: rtc_handler. dealed called by the interrupt.
+ *   Inputs: none
+ *   Return Value: none
+ */
 void rtc_handler(void){   //we wait for at least RTC_TIMES intrrputs. **We consider it is a 1 core machine so decide this simple code.
                       //if it is a muti-core, we need to have  independent structures for every cpu.
     static volatile int times = 0;
     times ++;
     send_eoi(RTC_IRQ);
 
-    outb(0x0C,RTC_SELECTOR); //here we choose the RC. Why not begin at 0x8C? I don't know yet
+    outb(0x0C,RTC_SELECTOR); //here we choose the RC. Why not begin at 0x8C? I don't know yet   0x0c just the RC address
     inb(RTC_RW);              //similar to the keyboard, you need to read the Register to show that your acception.
 
     if((times)!=1){
@@ -142,7 +155,11 @@ void rtc_handler(void){   //we wait for at least RTC_TIMES intrrputs. **We consi
     return;
 }
 
-
+/*   rtc_init
+ *   Function: init the keyboard input
+ *   Inputs: none
+ *   Return Value: none
+ */
 //warning: we need to call it in critical section
 void rtc_init(void){
     //first step: set the frequency correctly.
