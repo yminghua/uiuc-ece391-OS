@@ -418,7 +418,7 @@ void read_file_i(int f_idx) {
 void file_OpenRead_test() {
 
     fill_fname_list();
-    uint8_t* fname = all_fname_list[12];    // in this case: read "frame1.txt" (index is 15 in all_fname_list)
+    uint8_t* fname = all_fname_list[15];    // in this case: read "frame1.txt" (index is 15 in all_fname_list)
 
     /* set the file descriptor information */
 	int fd = 1;
