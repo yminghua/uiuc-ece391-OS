@@ -190,7 +190,8 @@ uint32_t kbbufpop(){
 
 //push one char into the buffer. 
 uint32_t kbbufpush(uint8_t bite){
-  if(kbbuf.bitenum >= 127 && bite !='\n') return 1; //buffer is almost full, we only accept '\n' for nearly full buffer.
+  if(kbbuf.bitenum == 127 && bite !='\n') return 1; //buffer is almost full, we only accept '\n' for nearly full buffer.
+  if(kbbuf.bitenum == 128) return 2; //totally full... return 2
   if(bite == '\n'){
     kbbuf.linelocbuf[kbbuf.lineEP] = kbbuf.biteEP;
     kbbuf.lineEP = POS(kbbuf.lineEP+1);
