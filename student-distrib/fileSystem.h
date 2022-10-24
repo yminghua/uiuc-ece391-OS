@@ -22,23 +22,23 @@ typedef struct bootBlock {
     uint32_t num_data_blocks;
 } bootBlock_t;
 
+
 /************************** file descriptor ***********************************/
 
-typedef struct fileOperations_table {
-    int32_t (*open)(const uint8_t* filename, int fd);
-    int32_t (*close)(int32_t fd);
-    int32_t (*read)(int32_t fd, void* buf, int32_t nbytes);
-    int32_t (*write)(int32_t fd, const void* buf, int32_t nbytes);
-} fileOpT_t;
+// typedef struct fileOperations_table {
+//     int32_t (*open)(const uint8_t* filename, int fd);
+//     int32_t (*close)(int32_t fd);
+//     int32_t (*read)(int32_t fd, void* buf, int32_t nbytes);
+//     int32_t (*write)(int32_t fd, const void* buf, int32_t nbytes);
+// } fileOpT_t;
 
 /* File Object structure - for PCB */
 typedef struct fdInfo {
-    fileOpT_t fileOpT_ptr;     /* Only valid for data file */
+    // fileOpT_t fileOpT_ptr;     /* Only valid for data file */
     uint32_t inode_index;
     uint32_t file_position;       /* Current position in file, updated by system calls */
     uint32_t flags;          /* If flag is set, file object is in use */
 } fdInfo_t;
-
 
 
 /***************************** file module ***********************************/
@@ -71,9 +71,21 @@ extern void init_fileSys(uint32_t* filesys_addr);
 
  extern int32_t dir_close(int32_t fd);
 
- /**************** test operations ****************/
+
+ /**************** test functions ****************/
+
  extern void list_all_files();
+
  extern void list_all_files_by_name();
+
  extern void read_file_i(int f_idx);
+
+ extern void fill_fname_list();
+
+ extern void file_OpenRead_test();
+
+ extern void dir_OpenRead_test(int fd);
+
+ extern void Print_dir_test();
 
 #endif /* _FILESYSTEM_H */
