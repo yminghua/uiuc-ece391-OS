@@ -418,7 +418,7 @@ void read_file_i(int f_idx) {
 void file_OpenRead_test() {
 
     fill_fname_list();
-    uint8_t* fname = all_fname_list[15];    // in this case: read "frame1.txt" (index is 15 in all_fname_list)
+    uint8_t* fname = all_fname_list[12];    // in this case: read "frame1.txt" (index is 15 in all_fname_list)
 
     /* set the file descriptor information */
 	int fd = 1;
@@ -436,15 +436,19 @@ void file_OpenRead_test() {
 		printf("file_open FAIL! \n");
 	
 	int32_t i, count;
+    int new_line = 0;
 	uint8_t buf[100000];    // set large enough number for buffer size
 	count = file_read(fd, buf, 100000);
 	// printf("Successfully read %d Bytes!\n", count);
     printf((int8_t*)fname);
     printf(":\n");
 	for (i = 0; i < count; i++) {
-			if (buf[i] != '\0') {
-				putc(buf[i]);
-			}
+        if (buf[i] != '\0') {
+            putc(buf[i]);
+            new_line++;
+            if (buf[i]=='\n') new_line=0;
+            if (new_line>=80) {putc('\n'); new_line=0;}     // number of display screen column is 80
+        }
 	}
 
 	file_close(fd);
