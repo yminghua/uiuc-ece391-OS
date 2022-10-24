@@ -4,6 +4,7 @@
 #include "types.h" //LYS
 #include "lib.h"
 #include "e391device.h"//drush8: can be cancelled when we doesn't use cp1: pageF test
+#include "fileSystem.h"
 
 #define PASS 1
 #define FAIL 0 
@@ -143,6 +144,74 @@ int pageFexception_test(){
 // add more tests here
 
 /* Checkpoint 2 tests */
+
+/*
+ * test file_open and file_read
+ */
+int file_OpenRead_test() {
+
+	TEST_HEADER;
+
+	int fd = 3;
+	fdInfo_t fd_info;
+    fd_info.inode_index = 0;
+    fd_info.file_position = 0;
+    fd_info.flags = 0;
+	Temp_fd_array[fd] = fd_info;
+
+	clear();
+	uint8_t fname[32] = "frame1.txt";
+
+	int check = file_open(fname, fd);
+	if (check == 0)
+		printf("file_open succeed! \n");
+	else
+		printf("file_open FAIL! \n");
+	
+	int8_t buf[6000];													//allocate enough(6000) space to store the date
+	int32_t i, count;
+	count = file_read(fd, buf, 6000);					//6000 is the size of the buf
+	printf("Successfully read %d Bytes!\n", count);
+	for (i = 0; i < count; i++) {
+			if (buf[i] != '\0') {
+				putc(buf[i]);
+			}
+	}
+	file_close(3);
+
+	if (count > 0)
+		return PASS;
+
+	return FAIL;
+
+}
+
+/*
+ * test dir_open and dir_read
+ */
+int dir_OpenRead_test() {
+
+	TEST_HEADER;
+
+	int fd = 4;
+	fdInfo_t fd_info;
+    fd_info.inode_index = 0;
+    fd_info.file_position = 0;
+    fd_info.flags = 0;
+	Temp_fd_array[fd] = fd_info;
+
+	clear();
+	uint8_t fname[32] = ".";								 //allocate a buf(33) to store its name
+	int8_t buf[33];													//allocate enough(33) space to store the data
+	dir_open(fname);
+	dir_read(fd, buf, 0);
+	
+	dir_close(fd);
+	return PASS;
+}
+
+
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -150,12 +219,15 @@ int pageFexception_test(){
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
+	// TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
-	TEST_OUTPUT("page_test", page_test());
-	TEST_OUTPUT("syscall_test", syscall_test());
-	TEST_OUTPUT("keyboardandRTC_test", KAndR_test());
+	// TEST_OUTPUT("page_test", page_test());
+	// TEST_OUTPUT("syscall_test", syscall_test());
+	// TEST_OUTPUT("keyboardandRTC_test", KAndR_test());
 
 	//warning: this final test will lead to the blue screen of the kernel. drush8
-	TEST_OUTPUT("PageFault_test", pageFexception_test());
+	// TEST_OUTPUT("PageFault_test", pageFexception_test());
+
+	TEST_OUTPUT("file_open&read test", file_OpenRead_test());
+
 }
