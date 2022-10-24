@@ -4,6 +4,7 @@
 #include "types.h" //LYS
 #include "lib.h"
 #include "e391device.h"//drush8: can be cancelled when we doesn't use cp1: pageF test
+#include "rtc.h" //yst
 
 #define PASS 1
 #define FAIL 0 
@@ -143,6 +144,54 @@ int pageFexception_test(){
 // add more tests here
 
 /* Checkpoint 2 tests */
+
+
+// rtc test, control different f
+// test 6 legal and one illegal
+// it will show marks in defferent f
+int rtc_test(){
+
+	// clean the screen
+	int c;
+	for(c=0;c<=26;c++){ //clean 26 line
+		printf("                                                   \n");
+	}
+	printf("have cleaned the screen \n");
+
+	// the test part
+
+
+
+	int32_t i=0;
+	int test_f[7]={2,4,8,16,32,64,5}; // test 6 legal and one illegal, they are the frequence
+
+
+	printf("\n       RTC test       \n");
+	printf("\n test 6 legal and one illegal f                               \n");
+
+	rtc_open(0); // set to 2 Hz
+	int r=0;
+	int count;
+
+	// 7 frequences in test_f
+	while(i<7){
+		count=0;
+		printf("            \n now, the f is %d Hz                          \n", test_f[i]);
+		if(rtc_write(0, &test_f[i], 4)==0){ // set the new f
+
+			// print 20 characters
+			while(count<20){
+					rtc_read(0, &r, 4); // 4 is to make function work
+			putc(1);
+				count++;
+			}
+			
+		}
+		i++;
+
+	}
+	return PASS;
+}
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -150,12 +199,6 @@ int pageFexception_test(){
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
-	// launch your tests here
-	TEST_OUTPUT("page_test", page_test());
-	TEST_OUTPUT("syscall_test", syscall_test());
-	TEST_OUTPUT("keyboardandRTC_test", KAndR_test());
-
-	//warning: this final test will lead to the blue screen of the kernel. drush8
-	TEST_OUTPUT("PageFault_test", pageFexception_test());
+	rtc_test();
+	
 }
