@@ -3,11 +3,7 @@
 #include "x86_page.h" //LYS
 #include "types.h" //LYS
 #include "lib.h"
-<<<<<<< HEAD
-#include "idt.h"
-=======
 #include "e391device.h"//drush8: can be cancelled when we doesn't use cp1: pageF test
->>>>>>> 8cd044ba4070057728d6045e0d02d1e882c33b47
 
 #define PASS 1
 #define FAIL 0 
@@ -144,45 +140,6 @@ int pageFexception_test(){
 	return PASS; //this should not be reached.
 }
 
-/* Divide by zero test
- *
- * Should cause a divide by zero exception
- * Inputs: None
- * Outputs: None
- * Side Effects: crashes kernel
- * Coverage: Divide by zero Exception
- */
-int Divide_Error_test()
-{
-    TEST_HEADER;
-
-	int result = PASS;
-    test_Divide_Error();
-
-    return result;
-}
-
-int Reversed_test()
-{
-	TEST_HEADER;
-
-	int result = PASS;
-    test_REVERSED();
-
-    return result;
-}
-
-int System_calls_test()
-{
-	TEST_HEADER;
-
-	int result = PASS;
-	test_System_calls();
-
-    return result;
-}
-
-
 // add more tests here
 
 /* Checkpoint 2 tests */
@@ -195,16 +152,10 @@ int System_calls_test()
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
-<<<<<<< HEAD
-	TEST_OUTPUT("Divide_Error_test", Divide_Error_test());
-	TEST_OUTPUT("Reversed_test", Reversed_test());
-	TEST_OUTPUT("System_calls_test", System_calls_test());
-=======
 	TEST_OUTPUT("page_test", page_test());
 	TEST_OUTPUT("syscall_test", syscall_test());
 	TEST_OUTPUT("keyboardandRTC_test", KAndR_test());
 
 	//warning: this final test will lead to the blue screen of the kernel. drush8
 	TEST_OUTPUT("PageFault_test", pageFexception_test());
->>>>>>> 8cd044ba4070057728d6045e0d02d1e882c33b47
 }
