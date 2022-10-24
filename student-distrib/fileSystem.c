@@ -25,7 +25,7 @@ static fdInfo_t Temp_fd_array[8];  // A temporary global array for file descript
 /******************* file system module *******************/
 
 /*init_fileSys
- * description: load the start addr of file system into static variable fileSys_addr
+ * description: load the start addr of file system into static variable fileSys_addr and init bootBlock
  * return value: 0 on success, -1 on file not found
  */
 void init_fileSys(uint32_t* filesys_addr) {
