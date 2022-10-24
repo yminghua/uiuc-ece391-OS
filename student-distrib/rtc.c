@@ -85,7 +85,9 @@ int rtc_open(const unsigned char* filename){
  */
 int rtc_read(int fd, void* buf, int nbytes){
     
+    rtc_interrupt_occur=0;
     // wait
+
     while(!rtc_interrupt_occur){}
 
     // reset the rtc_interrupt_occur
