@@ -2,6 +2,7 @@
 #include "x86_desc.h"
 #include "x86_page.h" //LYS
 #include "types.h" //LYS
+#include "fileSystem.h"
 #include "lib.h"
 #include "e391device.h"//drush8: can be cancelled when we doesn't use cp1: pageF test
 #include "fileSystem.h"
@@ -144,6 +145,21 @@ int pageFexception_test(){
 // add more tests here
 
 /* Checkpoint 2 tests */
+void list_all_files_test() {
+	list_all_files();
+}
+
+void print_fish_test() {
+	read_file_i(10);
+}
+
+void print_exe_test() {
+	read_file_i(16);
+}
+
+void clear_screen() {
+	clear();
+}
 
 /*
  * test file_open and file_read
@@ -219,7 +235,7 @@ int dir_OpenRead_test() {
 
 /* Test suite entry point */
 void launch_tests(){
-	// TEST_OUTPUT("idt_test", idt_test());
+	//// TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
 	// TEST_OUTPUT("page_test", page_test());
 	// TEST_OUTPUT("syscall_test", syscall_test());

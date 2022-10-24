@@ -141,13 +141,14 @@ void entry(unsigned long magic, unsigned long addr) {
         ltr(KERNEL_TSS);
     }
 
-    Init_IDT(); //LYS
-
-    /* LYS: Init and enable paging, init file system */
+    /* LYS: init file system */
     module_t* fileSys_module = (module_t*)mbi->mods_addr;
     init_fileSys((uint32_t*)(fileSys_module->mod_start));
-    init_paging();
-    
+
+    Init_IDT(); //LYS
+ 
+    init_paging(); //LYS
+
 
     /* Init the PIC */
     i8259_init();

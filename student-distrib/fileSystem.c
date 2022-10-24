@@ -15,24 +15,26 @@
 #define FTYPE_OFF 32  //offset to get file type field
 #define INODE_OFF 36  //offset to get inode field
 
+
 static uint8_t* fileSys_addr;
 static bootBlock_t bootBlock;
 dentry_t f_dentry;
 dentry_t d_dentry;
 static fdInfo_t Temp_fd_array[8];  // A temporary global array for file descriptors just for CheckPoint 2
+uint8_t all_fname_list[17][32]; // contain the name of all 17 files, foe testing purpose, fill at process list all files
 
 
 /******************* file system module *******************/
 
 /*init_fileSys
- * description: load the start addr of file system into static variable fileSys_addr
+ * description: load the start addr of file system into static variable fileSys_addr and init bootBlock
  * return value: 0 on success, -1 on file not found
  */
 void init_fileSys(uint32_t* filesys_addr) {
     fileSys_addr = (uint8_t *)filesys_addr;
     bootBlock.num_dentries = *fileSys_addr;
-    bootBlock.num_inodes = *(fileSys_addr+FTYPE_OFF);
-    bootBlock.num_data_blocks = *(fileSys_addr+INODE_OFF);
+    bootBlock.num_inodes = *(fileSys_addr+4);
+    bootBlock.num_data_blocks = *(fileSys_addr+8);
 }
 
 /*read_dentry_by_name
@@ -40,17 +42,18 @@ void init_fileSys(uint32_t* filesys_addr) {
  * return value: 0 on success, -1 on file not found
  */
 int32_t read_dentry_by_name (uint8_t* fname, dentry_t* dentry) {
-    uint32_t i = DENTRY_SIZE;
+    uint32_t i = 0;
     uint8_t* cur_fname;
     
-    if (fname == NULL || dentry == NULL || strlen((int8_t*)fname) > 32)
+    if (fname == NULL || dentry == NULL)
         return -1;
 
-    while (i<BLOCK_SIZE) {
-        cur_fname = *(fileSys_addr+i);
+    while (i<bootBlock.num_dentries) {
+        cur_fname = (fileSys_addr+(i+1)*DENTRY_SIZE);
         if (!strncmp(fname, cur_fname, 32)) break;
+        i ++;
     }
-    if (i==BLOCK_SIZE) return -1;
+    if (i==bootBlock.num_dentries) return -1;
     strncpy(dentry->file_name, cur_fname, 32);
     dentry->file_type = *(fileSys_addr+i+FTYPE_OFF);
     dentry->inode_index = *(fileSys_addr+i+INODE_OFF);
@@ -65,10 +68,9 @@ int32_t read_dentry_by_name (uint8_t* fname, dentry_t* dentry) {
 int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry) {
     uint32_t entry_ptr = (index+1)*DENTRY_SIZE;
     if (index >= bootBlock.num_dentries) return -1;
-    strncpy(dentry->file_name, *(fileSys_addr+entry_ptr), 32);
+    strncpy(dentry->file_name, (fileSys_addr+entry_ptr), 32);
     dentry->file_type = *(fileSys_addr+entry_ptr+FTYPE_OFF);
     dentry->inode_index = *(fileSys_addr+entry_ptr+INODE_OFF);
-
     return 0;
 }
 
@@ -95,8 +97,9 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     off_dblock = offset/BLOCK_SIZE;
     off_indblock = offset - off_dblock*BLOCK_SIZE;
     dblock_id = *(inode_ptr+1+off_dblock);
+    if (dblock_id>=D) return -1;
     while ((off_dblock*BLOCK_SIZE+off_indblock<inode_length) && (count<length)) {
-        byte_to_copy = fileSys_addr + (N+dblock_id+1)*BLOCK_SIZE;
+        byte_to_copy = fileSys_addr + (N+dblock_id+1)*BLOCK_SIZE + off_indblock;
         strncpy(buf+count, byte_to_copy, 1);
         count++;
         off_indblock++;
@@ -104,6 +107,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
             off_indblock=0;
             off_dblock ++;
             dblock_id = *(inode_ptr+1+off_dblock);
+            if (dblock_id>=D) return -1;
         }
     }
     return count;
@@ -247,4 +251,140 @@ int32_t dir_open(const uint8_t* filename) {
  */
 int32_t dir_close(int32_t fd) {
     return 0;
+}
+
+
+
+
+
+
+/**********************************************************************/
+/*                                                                    */
+/*                           Testing purpose                          */
+/*                                                                    */
+/**********************************************************************/
+
+/*
+ *  list_all_files:
+ *    DESCRIPTION: list all files in the system, for testing purpose
+ *    INPUTS: void
+ *    RETURN VALUE: void
+ */
+void list_all_files() {
+    int f_idx, ret, name_area=35, fn_len, i;
+    dentry_t file;
+    uint32_t *inode_ptr;
+    uint8_t name_buf[33];
+    name_buf[32]=0;
+    for (f_idx = 0; f_idx<bootBlock.num_dentries; f_idx++) {
+        ret = read_dentry_by_index(f_idx, &file);
+        if (ret==-1) {
+            printf("read by index return -1 on file %d", f_idx);
+            return;
+        }
+        // print file properties: name, type and size
+        fn_len = strlen(file.file_name);
+        printf("file_name:");
+        for (i=0; i<name_area-fn_len; i++) printf(" ");
+        strncpy(name_buf, file.file_name, 32);
+        strncpy(all_fname_list[f_idx], file.file_name, 32);
+        printf(name_buf);
+        printf(", ");
+        printf("file_type: %d", file.file_type);
+        printf(", ");
+        inode_ptr = fileSys_addr+(file.inode_index + 1)*BLOCK_SIZE;
+        printf("file_size: %d\n", *inode_ptr);
+    }
+}
+
+
+// fill all_fname_list, testing purpose
+void fill_fname_list() {
+    int f_idx, ret, name_area=35, fn_len, i;
+    dentry_t file;
+    for (f_idx = 0; f_idx<bootBlock.num_dentries; f_idx++) {
+        ret = read_dentry_by_index(f_idx, &file);
+        if (ret==-1) {
+            printf("read by index return -1 on file %d", f_idx);
+            return;
+        }
+        strncpy(all_fname_list[f_idx], file.file_name, 32);
+    }
+}
+
+
+// read_and_print_all_files, testing purpose
+void list_all_files_by_name() {
+    int f_idx, ret, name_area=35, fn_len, i;
+    dentry_t file;
+    uint32_t *inode_ptr;
+    uint8_t name_buf[33];
+    name_buf[32]=0;
+
+    fill_fname_list();
+    for (f_idx = 0; f_idx<bootBlock.num_dentries; f_idx++) {
+        ret = read_dentry_by_name(all_fname_list[f_idx], &file);
+        if (ret==-1) {
+            printf("read by name return -1 on file %d", f_idx);
+            return;
+        }
+        // print file properties: name, type and size
+        fn_len = strlen(file.file_name);
+        printf("file_name:");
+        for (i=0; i<name_area-fn_len; i++) printf(" ");
+        strncpy(name_buf, file.file_name, 32);
+        strncpy(all_fname_list[f_idx], file.file_name, 32);
+        printf(name_buf);
+        printf(", ");
+        printf("file_type: %d", file.file_type);
+        printf(", ");
+        inode_ptr = fileSys_addr+(file.inode_index + 1)*BLOCK_SIZE;
+        printf("file_size: %d\n", *inode_ptr);
+    }
+}
+
+
+// read the content of the ith file and print it on screen. notice: fish_id=10 (fish is an exe), very large=11, .exe(ls)=12, exe(hello)=16
+void read_file_i(int f_idx) {
+    int ret, f_size, i;
+    dentry_t file;
+    uint32_t inode_num;
+    uint32_t *inode_ptr;
+    uint32_t buf_size = 1024;
+    uint8_t buf[buf_size]; // a buffer of 1KB
+    uint32_t bytes_read, count=0, new_line=0;
+
+    for (i=0; i<buf_size; i++) {
+        buf[i] = 0;
+    }
+
+    ret = read_dentry_by_index(f_idx, &file);
+    if (ret==-1) {
+        printf("read by index return -1 on file %d", f_idx);
+        return;
+    }
+    inode_num = file.inode_index;
+    inode_ptr = fileSys_addr+(file.inode_index + 1)*BLOCK_SIZE;
+    f_size = *inode_ptr;
+
+    while (f_size > 0) {
+        if (f_size<buf_size) bytes_read = read_data(inode_num, count, buf, f_size);
+        else bytes_read = read_data(inode_num, count, buf, buf_size);
+        if (bytes_read==-1) {
+            printf("read data failed at offset %d", count);
+            return;
+        }
+        f_size -= bytes_read;
+        count += bytes_read;
+        i = -1;
+        while (++i<buf_size) {
+            if (buf[i]==0) continue;
+            new_line++;
+            if (buf[i]=='\n') new_line=0;
+            if (new_line>=80) {putc('\n'); new_line=0;}
+            putc(buf[i]);
+        }
+    }
+
+    return;
 }

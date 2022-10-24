@@ -4,3 +4,6 @@ bug1: global variable from .S file used directly as address
 bug2: struct for page directory entry takes 8 bytes instead of 4
 bug3: "Cannot access memory at address 0x7ffff4" when calling enable_paging macro in entry() function in kernel.c
 bug4: couldn't compile after creating and deleting x86_page.c (messed up the automatic file linkage)
+
+==bug for file system==
+bug1: "\n" is ,! '\n' is new line. single double quote different
