@@ -45,4 +45,10 @@ extern void keyboard_handler_linkage(); //2022.10.16. Now only two interrupt.
 void System_calls(void);
 
 
+/* Test functions*/
+void test_System_calls(void);
+void test_Divide_Error(void);
+void test_REVERSED(void);
+
+
 #endif /* _ITD_H */

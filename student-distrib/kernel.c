@@ -6,6 +6,7 @@
 #include "x86_desc.h"
 #include "x86_page.h" //LYS
 #include "idt.h" //LYS
+#include "fileSystem.h" //LYS
 #include "lib.h"
 #include "i8259.h"
 #include "debug.h"
@@ -142,10 +143,14 @@ void entry(unsigned long magic, unsigned long addr) {
         ltr(KERNEL_TSS);
     }
 
-    Init_IDT(); //LYS
+    /* LYS: init file system */
+    module_t* fileSys_module = (module_t*)mbi->mods_addr;
+    init_fileSys((uint32_t*)(fileSys_module->mod_start));
 
-    /* LYS: Init and enable paging */
-    init_paging();
+    Init_IDT(); //LYS
+ 
+    init_paging(); //LYS
+
 
     /* Init the PIC */
     i8259_init();

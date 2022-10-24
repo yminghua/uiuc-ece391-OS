@@ -1,0 +1,7 @@
+RTC
+1. there are many prints before rtc test
+answer: 	because did not use the rtc_read to control the print only take place 
+	when there is an request in test. and it add print function on the handle
+2. there are many prints when the frequence is wrong
+answer: need to judge the rtc_write is success or not, or it will use last frequence to run the prints
+	so just add a if to judge, and add read and print in the if

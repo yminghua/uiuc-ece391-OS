@@ -2,6 +2,7 @@
 #include "x86_desc.h"
 #include "x86_page.h" //LYS
 #include "types.h" //LYS
+#include "fileSystem.h"
 #include "lib.h"
 //#include "e391device.h"//drush8: can be cancelled when we doesn't use cp1: pageF test
 #include "e391terminal.h"
@@ -206,7 +207,7 @@ int kbAndterminal_test(){
  * Files: rtc.c/h
  */
 int rtc_test(){
-
+	TEST_HEADER;
 	// clean the screen
 	int c;
 	for(c=0;c<=2;c++){ //clean 26 line
@@ -240,6 +241,86 @@ int rtc_test(){
 	return PASS;
 }
 
+
+
+/* filesys3func Tests - Drush8
+ * 
+ * frequency testing
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Coverage: filesys's 3 function (no sys_like call testing)
+ * Files: rtc.c/h
+ */
+//
+
+int list_all_files_test() {
+	list_all_files();
+	return PASS;
+}//not used in demo cp3.2
+
+int print_ls_test() {
+	TEST_HEADER;
+	printf("\n\n file test additional ...\n");
+	printf("\n\n this test covers ls exec...(small exec)\n");
+	int check = if9pressed;
+	while(if9pressed==check);
+	clear();
+	read_file_i(12);
+	printf("\n op key to continue....");
+	check = if9pressed;
+	while(if9pressed==check);
+	return PASS;
+}
+int print_fish_exe_test() {
+	TEST_HEADER;
+	printf("\n\n file test additional...\n");
+	printf("\n\n this test covers fish exec...(large exec)\n");
+	int check = if9pressed;
+	while(if9pressed==check);
+	clear();
+	read_file_i(6);
+	printf("\n");
+	return PASS;
+}
+
+/* filesystem open and read test - Drush8
+ * 
+ * 
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Coverage: 
+ * Files: fileSystem.s/h
+ */
+int F_syslike_openread_test(){
+	TEST_HEADER;
+	int check = if9pressed;
+	printf("\n\n filesystem open and read testing, type 9,8,7 to begin...\n");
+	printf("\n\n this test covers frame0.txt...\n");
+	while(if9pressed==check);
+	clear();
+	file_OpenRead_test();
+	return PASS;
+}
+
+/* filesystem open and read test - Drush8
+ * 
+ * 
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Coverage: 
+ * Files: fileSystem.s/h
+ */
+int F_Print_dir_test(){
+	int check = if9pressed;
+	printf("\n\n print diractory testing, type 9,8,7 to begin...\n");
+	while(if9pressed==check);
+	Print_dir_test();
+	return PASS;
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -259,9 +340,16 @@ void launch_tests(){
 	//TEST_OUTPUT("PageFault_test", pageFexception_test());
 
 
-
-
 	//C P 2 : T E S T I N G 
 	TEST_OUTPUT("keyboardbAndterminal_test", kbAndterminal_test());
-	TEST_OUTPUT("rtcFrequency_test", rtc_test());
+	//TEST_OUTPUT("rtcFrequency_test", rtc_test());
+	TEST_OUTPUT("F_Print_dir_test", F_Print_dir_test());
+	TEST_OUTPUT("F_syslike_openread_test", F_syslike_openread_test());
+	printf("\n additional files read tests:: small exec and large exec...\n");
+	TEST_OUTPUT("print_ls_test", print_ls_test());
+	TEST_OUTPUT("print_fish_exe_test", print_fish_exe_test());
+	
+
+
 }
+
