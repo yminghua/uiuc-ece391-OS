@@ -255,7 +255,7 @@ int rtc_test(){
 //
 
 int list_all_files_test() {
-	list_all_files();
+	list_all_files_by_name();
 	return PASS;
 }//not used in demo cp3.2
 
@@ -340,16 +340,17 @@ void launch_tests(){
 	//TEST_OUTPUT("PageFault_test", pageFexception_test());
 
 
-	//C P 2 : T E S T I N G 
-	TEST_OUTPUT("keyboardbAndterminal_test", kbAndterminal_test());
-	TEST_OUTPUT("rtcFrequency_test", rtc_test());
-	TEST_OUTPUT("F_Print_dir_test", F_Print_dir_test());
-	TEST_OUTPUT("F_syslike_openread_test", F_syslike_openread_test());
-	printf("\n additional files read tests:: small exec and large exec...\n");
-	TEST_OUTPUT("print_ls_test", print_ls_test());
-	TEST_OUTPUT("print_fish_exe_test", print_fish_exe_test());
-	
+	// //C P 2 : T E S T I N G 
+	// TEST_OUTPUT("keyboardbAndterminal_test", kbAndterminal_test());
+	// TEST_OUTPUT("rtcFrequency_test", rtc_test());
+	// TEST_OUTPUT("F_Print_dir_test", F_Print_dir_test());
+	// TEST_OUTPUT("F_syslike_openread_test", F_syslike_openread_test());
+	// printf("\n additional files read tests:: small exec and large exec...\n");
+	// TEST_OUTPUT("print_ls_test", print_ls_test());
+	// TEST_OUTPUT("print_fish_exe_test", print_fish_exe_test());
 
+	list_all_files_by_name();
+	
 
 }
 

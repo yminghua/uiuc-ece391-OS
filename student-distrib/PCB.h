@@ -10,6 +10,8 @@
 
 #define MASK 0x2000 //8MB, mask esp to find PCB
 #define MAX_PNUM 10  //maximum process number, including the original boot up
+#define KB 0x400
+#define MB 0x100000
 
 typedef struct {
     fdInfo_t fd_array[8];
@@ -25,6 +27,7 @@ extern PCB_t *pid_table[MAX_PNUM];
 
 /*====extern functions====*/
 extern PCB_t * get_PCB();
+extern void  init_Syscall();
 
 
 #endif //PCB_H

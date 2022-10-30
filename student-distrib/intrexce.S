@@ -26,7 +26,7 @@ name:                         ;\
 name:                         ;\
 	pushal                    ;\
 	pushfl                    ;\
-    pushl   $n                 ;\ # LYS; this doesn't seem to have an effect, we don't need interrupt number if we do this way
+    pushl   $n                 ;\
 	call func                 ;\
     addl	$4, %esp          ;\
 	popfl                     ;\

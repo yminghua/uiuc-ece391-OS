@@ -170,6 +170,8 @@ void entry(unsigned long magic, unsigned long addr) {
     rtc_init();
 //drush8, now we only enable the keyboard.
 
+    init_Syscall(); //LYS: initialize PCB_prime and pid_table
+
     sti();
 
 #ifdef RUN_TESTS

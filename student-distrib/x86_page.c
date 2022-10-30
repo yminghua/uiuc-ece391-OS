@@ -41,3 +41,20 @@ void init_paging() {
 				: "eax"
 	);                                 
 }
+
+//LYS: map vm addr to phys addr
+void map_4M(uint32_t vm, uint32_t phys) {
+	SET_PD_ENTRY_4M(PD[vm>>22], phys, 0, 1);
+	Flush_TLB();
+}
+
+//LYS: unmap vm addr to phys addr
+void unmap_4M(uint32_t vm, uint32_t phys) {
+	//check if vm indeed been mapped to phys
+	if (!((PD[vm>>22].PBase_Addr)>>22 == phys)) {
+		printf("can't unmap this, vm %d and phys %d has not been mapped!", vm, phys);
+		return;
+	}
+	UNSET_PD_ENTRY_4M(PD[vm>>22]);
+	Flush_TLB();
+}
