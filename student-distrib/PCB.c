@@ -10,5 +10,5 @@ PCB_t *pid_table[MAX_PNUM];
 
 PCB_t * get_PCB() {
     register uint32_t save_ebp asm("ebp"); 
-    return (PCB_t*)(save_ebp & MASK);
+    return (PCB_t*)((save_ebp-1) & MASK);
 }
