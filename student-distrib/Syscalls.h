@@ -6,6 +6,7 @@
 #define SYSCALLS_H
 
 #include "types.h"
+#include "PCB.h"
 
 //syscalls number, may not be used
 #define SYS_HALT    1
