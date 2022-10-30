@@ -26,7 +26,7 @@ name:                         ;\
 name:                         ;\
 	pushal                    ;\
 	pushfl                    ;\
-    pushl   $n                 ;\
+    pushl   $n                 ;\ # LYS; this doesn't seem to have an effect, we don't need interrupt number if we do this way
 	call func                 ;\
     addl	$4, %esp          ;\
 	popfl                     ;\
@@ -60,19 +60,19 @@ INTR_LINKR(Machine_Check, Print_exceptions, 18)
 INTR_LINKR(Floating_Point_Exception, Print_exceptions,19)
 
 
-//for syscall, instead we should not add it here
-//the code below is just for cp1
-//drush8
-.global	System_calls
+# //for syscall, instead we should not add it here
+# //the code below is just for cp1
+# //drush8
+# .global	System_calls
 
 
-System_calls:
-    cli
-    pushal
-    pushfl
-    call	Print_system_calls
-    popfl
-    popal
-    sti
-    iret
+# System_calls:
+#     cli
+#     pushal
+#     pushfl
+#     call	Print_system_calls
+#     popfl
+#     popal
+#     sti
+#     iret
 
