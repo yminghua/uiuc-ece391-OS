@@ -10,7 +10,7 @@
 #define RTC_SELECTOR 0x70
 #define RTC_RW 0x71
 #define RTC_RA 0x8A
-#define RTC_RB 0x8B
+#define RTC_RB 0x8B         //ABOVE ARE all ports num
 
 
 /*   rtc_handler
@@ -71,7 +71,7 @@ void rtc_init(void){
  * Inputs:      none
  * Outputs:     0 success, -1 fail
  */
-int rtc_open(const unsigned char* filename){
+int rtc_open(const uint8_t* filename){
 
     // just set the f to 2 Hz
     return rtc_reset_freq(2);
@@ -83,9 +83,11 @@ int rtc_open(const unsigned char* filename){
  * Outputs:  0 success
  * Function:  Read once interrupt occur
  */
-int rtc_read(int fd, void* buf, int nbytes){
-    
+int rtc_read(int32_t fd, void* buf, int32_t nbytes){
+
+    rtc_interrupt_occur=0;
     // wait
+
     while(!rtc_interrupt_occur){}
 
     // reset the rtc_interrupt_occur
@@ -99,7 +101,7 @@ int rtc_read(int fd, void* buf, int nbytes){
  * Inputs:      buf, where frequency to be set. nbytes only 4 to work
  * Outputs:     0 success, -1 fail
  */
-int rtc_write(int fd, const void* buf, int nbytes){
+int rtc_write(int32_t fd, const void* buf, int32_t nbytes){
 
     //check the input
     if( buf==NULL || nbytes!=4 ){     
@@ -115,7 +117,7 @@ int rtc_write(int fd, const void* buf, int nbytes){
  * Inputs:      fd, file descriptor
  * Outputs:     none
  */
-int rtc_close(int fd){
+int rtc_close(int32_t fd){
     return 0;
 }
 
@@ -146,7 +148,7 @@ int rtc_reset_freq(int freq){
 
     // check not 2^n data, print wrong
     if(inputa==-1){
-        printf("\n illegal input freq, must be the power of 2 and <1024 \n");
+        //printf("\n illegal input freq, must be the power of 2 and <1024 \n");
         return -1;
     }
 

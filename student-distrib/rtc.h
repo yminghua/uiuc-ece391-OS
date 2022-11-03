@@ -14,13 +14,13 @@ volatile int  rtc_interrupt_occur;
 
 
 /*******inline*********/
-int rtc_open(const unsigned char* filename);
+int rtc_open(const uint8_t* filename);
 
-int rtc_read(int fd, void* buf, int nbytes);
+int rtc_read(int32_t fd, void* buf, int32_t nbytes);
 
-int rtc_write(int fd, const void* buf, int nbytes);
+int rtc_write(int32_t fd, const void* buf, int32_t nbytes);
 
-int rtc_close(int fd);
+int rtc_close(int32_t fd);
 
 int rtc_reset_freq(int freq);
 

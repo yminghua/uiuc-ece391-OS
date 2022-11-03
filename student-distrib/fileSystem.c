@@ -4,23 +4,17 @@
 
 #include "fileSystem.h"
 #include "lib.h"
-#include "rtc.h"
+#include "Syscalls.h"
 
 
 /* !!!every passed in file name must be exact 32 bytes with zero padding!!! (write a transform function to do that) */
 
 
-#define BLOCK_SIZE 4096  //block size in bytes
-#define FNAME_LEN 32  //max length of file name in bytes
-#define DENTRY_SIZE 64  //file system dentry size in bytes
-#define FTYPE_OFF 32  //offset to get file type field
-#define INODE_OFF 36  //offset to get inode field
+uint8_t* fileSys_addr;
+bootBlock_t bootBlock;
 
-
-static uint8_t* fileSys_addr;
-static bootBlock_t bootBlock;
-static fdInfo_t Temp_fd_array[8];  // A temporary global array for file descriptors just for CheckPoint 2
- static uint8_t all_fname_list[17][32]; // contain the name of all 17 files (each file name size is 32), foe testing purpose, fill at process list all files
+/* contain the name of all 17 files (each file name size is 32), foe testing purpose, fill at process list all files */
+uint8_t all_fname_list[17][32];
 
 
 /******************* file system module *******************/
@@ -79,7 +73,7 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry) {
 
 /*read_data
  * description: read length bytes of the file starting at offset into the buffer
- * return value: number of bytes read, or -1 if the inode number is invalid
+ * return value: number of bytes read, or -1 if the inode number is invalid, or 0 if offset >= inode_length
  */
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length) {
     uint32_t N, D, inode_length, off_dblock, off_indblock, dblock_id, count=0;
@@ -130,16 +124,10 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 int32_t file_read(int32_t fd, void* buf, int32_t nbytes) {
 
     /* get inode index and offset from fd array */
-    uint32_t inode =  Temp_fd_array[fd].inode_index;
-    uint32_t offset = Temp_fd_array[fd].file_position;
+    uint32_t inode = PCB_current.fd_array[fd].inode_index;
+    uint32_t offset = PCB_current.fd_array[fd].file_position;
 
     uint32_t read_nbytes = read_data(inode, offset, (uint8_t*)buf, nbytes);
-
-    if (read_nbytes == -1)  //  if read_data fail
-        return -1;
-
-    // if read succeefully, update the offset in file_position
-    Temp_fd_array[fd].file_position += read_nbytes;
 
     return read_nbytes;
 }
@@ -159,25 +147,13 @@ int32_t file_write(int32_t fd, const void* buf, int32_t nbytes) {
 
 
 /*
- *  file_write:
- *    DESCRIPTION: read corresponding dentry by the file name.
+ *  file_open:
+ *    DESCRIPTION: return 0
  *    INPUTS: filename: file name
- *            fd: file descriptor
  *    RETURN VALUE: 0 on success, -1 on file not found
  */
-int32_t file_open(const uint8_t* filename, int fd) {
-
-    dentry_t f_dentry;
-
-    int check = read_dentry_by_name((uint8_t*)filename, &f_dentry);
-    if (check == 0)
-    {
-        Temp_fd_array[fd].inode_index = f_dentry.inode_index;   // get the inode index from the fd array
-        // fd_info.flags = 1;
-    }
-
-    return check;
-    
+int32_t file_open(const uint8_t* filename) {
+    return 0;
 }
 
 
@@ -207,7 +183,7 @@ int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
     dentry_t d_dentry;
 
     // get the index of corresponding dentry from fd array
-    uint32_t index =  Temp_fd_array[fd].file_position;
+    uint32_t index = PCB_current.fd_array[fd].file_position;
 
     int32_t check = read_dentry_by_index(index, &d_dentry);
 
@@ -216,26 +192,26 @@ int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
     else
         return -1;
 
-    Temp_fd_array[fd].file_position += 1;   // update the index in file positon to read next file
+    return 1;   // update the index in file positon to read next file
 
 
-    /* print out the file information */
-    int name_area=35, fn_len, i;    // total name area size is 35 in our design
-    uint32_t *inode_ptr;
-    // print file properties: name, type and size
-    fn_len = strlen((int8_t*)d_dentry.file_name);
-    if (fn_len > FNAME_LEN)
-        fn_len = FNAME_LEN;
-    printf("file_name:");
-    for (i=0; i<name_area-fn_len; i++) printf(" ");
-    printf((int8_t*)buf);
-    printf(", ");
-    printf("file_type: %d", d_dentry.file_type);
-    printf(", ");
-    inode_ptr = (uint32_t*)(fileSys_addr+(d_dentry.inode_index + 1)*BLOCK_SIZE);
-    printf("file_size: %d\n", *inode_ptr);
+    // /* print out the file information */
+    // int name_area=35, fn_len, i;    // total name area size is 35 in our design
+    // uint32_t *inode_ptr;
+    // // print file properties: name, type and size
+    // fn_len = strlen((int8_t*)d_dentry.file_name);
+    // if (fn_len > FNAME_LEN)
+    //     fn_len = FNAME_LEN;
+    // printf("file_name:");
+    // for (i=0; i<name_area-fn_len; i++) printf(" ");
+    // printf((int8_t*)buf);
+    // printf(", ");
+    // printf("file_type: %d", d_dentry.file_type);
+    // printf(", ");
+    // inode_ptr = (uint32_t*)(fileSys_addr+(d_dentry.inode_index + 1)*BLOCK_SIZE);
+    // printf("file_size: %d\n", *inode_ptr);
 
-    return 0;
+    // return 0;
 }
 
 
@@ -260,9 +236,7 @@ int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes) {
  *    RETURN VALUE: 0 on success, -1 on fail
  */
 int32_t dir_open(const uint8_t* filename) {
-
     return 0;
-
 }
 
 
@@ -375,7 +349,8 @@ void read_file_i(int f_idx) {
     uint32_t *inode_ptr;
     uint32_t buf_size = 1024;
     uint8_t buf[1024]; // a buffer of 1KB
-    uint32_t bytes_read, count=0, new_line=0;
+    uint32_t bytes_read, count=0;
+    //new_line=0;
 
     for (i=0; i<buf_size; i++) {
         buf[i] = 0;
@@ -402,9 +377,9 @@ void read_file_i(int f_idx) {
         i = -1;
         while (++i<buf_size) {
             if (buf[i]==0) continue;
-            new_line++;
-            if (buf[i]=='\n') new_line=0;
-            if (new_line>=80) {putc('\n'); new_line=0;}
+            //new_line++;
+            //if (buf[i]=='\n') new_line=0;
+            //if (new_line>=80) {putc('\n'); new_line=0;}
             putc(buf[i]);
         }
     }
@@ -416,33 +391,33 @@ void read_file_i(int f_idx) {
 /*
  * test file_open and file_read
  */
-void file_OpenRead_test(int idx) {
-
-    clear();
+void file_OpenRead_test() {
 
     fill_fname_list();
-    uint8_t* fname = all_fname_list[idx];    // for example: read "frame1.txt" (index is 15 in all_fname_list)
+    uint8_t* fname = all_fname_list[15];    // in this case: read "frame1.txt" (index is 15 in all_fname_list)
 
     /* set the file descriptor information */
 	int fd = 1;
-    Temp_fd_array[fd].inode_index = 0;
-    Temp_fd_array[fd].file_position = 0;
-    Temp_fd_array[fd].flags = 0;
+    PCB_current.fd_array[fd].inode_index = 0;
+    PCB_current.fd_array[fd].file_position = 0;
+    PCB_current.fd_array[fd].flags = 0;
 
-	int check = file_open(fname, fd);
-	// if (check == 0) {
-    //     printf("Open ");
-    //     printf((int8_t*)fname);
-	// 	printf(" successfully!\n");
-    // }
-	// else
-	// 	printf("file_open FAIL! \n");
+	int check = file_open(fname);
+	if (check == 0) {
+        printf("Open ");
+        printf((int8_t*)fname);
+		printf(" successfully!\n");
+    }
+	else
+		printf("file_open FAIL! \n");
 	
 	int32_t i, count;
     int new_line = 0;
 	uint8_t buf[100000];    // set large enough number for buffer size
 	count = file_read(fd, buf, 100000);
 	// printf("Successfully read %d Bytes!\n", count);
+    printf((int8_t*)fname);
+    printf(":\n");
 	for (i = 0; i < count; i++) {
         if (buf[i] != '\0') {
             putc(buf[i]);
@@ -451,51 +426,10 @@ void file_OpenRead_test(int idx) {
             if (new_line>=80) {putc('\n'); new_line=0;}     // number of display screen column is 80
         }
 	}
-    printf("\n");
-    printf("file_name: ");
-    printf((int8_t*)fname);
-    printf("\n");
 
 	file_close(fd);
 
     return;
-}
-
-/*
- * print all the files as required
-*/
-void Print_files_test() {
-
-    int i=1;
-    int j;
-    rtc_open(0);
-    for(j=0;j<=5;j++){
-        rtc_read(0,&i,4);
-    }
-    file_OpenRead_test(10);
-    for(j=0;j<=5;j++){
-        rtc_read(0,&i,4);
-    }
-    file_OpenRead_test(15);
-    for(j=0;j<=5;j++){
-        rtc_read(0,&i,4);
-    }
-    file_OpenRead_test(3);
-    for(j=0;j<=5;j++){
-        rtc_read(0,&i,4);
-    }
-    file_OpenRead_test(12);
-    for(j=0;j<=5;j++){
-        rtc_read(0,&i,4);
-    }
-    file_OpenRead_test(6);
-    for(j=0;j<=5;j++){
-        rtc_read(0,&i,4);
-    }
-    file_OpenRead_test(11);
-
-    return;
-
 }
 
 
@@ -521,13 +455,11 @@ void dir_OpenRead_test(int fd) {
  */
 void Print_dir_test() {
 
-    clear();
-
     /* set the file descriptor information */
 	int fd = 0;
-    Temp_fd_array[fd].inode_index = 0;
-    Temp_fd_array[fd].file_position = 0;
-    Temp_fd_array[fd].flags = 0;
+    PCB_current.fd_array[fd].inode_index = 0;
+    PCB_current.fd_array[fd].file_position = 0;
+    PCB_current.fd_array[fd].flags = 0;
 
 	int i;
 	for (i = 0; i < 17; i++)    // in total 17 files

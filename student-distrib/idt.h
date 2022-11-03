@@ -41,8 +41,7 @@ extern void rtc_handler_linkage();
 extern void keyboard_handler_linkage(); //2022.10.16. Now only two interrupt.
 
 
-//may only used in cp1
-void System_calls(void);
+void SYSTEM_CALL_handler(void);
 
 
 /* Test functions*/
