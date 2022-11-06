@@ -256,7 +256,7 @@ int rtc_test(){
 //
 
 int list_all_files_test() {
-	list_all_files();
+	list_all_files_by_name();
 	return PASS;
 }//not used in demo cp3.2
 
@@ -356,6 +356,9 @@ void launch_tests(){
 	// Syscalls_test_dir();
 	// Syscalls_test_terminal();
 
+
+	list_all_files_by_name();
+	
 
 }
 

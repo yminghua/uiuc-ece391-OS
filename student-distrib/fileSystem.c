@@ -35,16 +35,24 @@ void init_fileSys(uint32_t* filesys_addr) {
  * return value: 0 on success, -1 on file not found
  */
 int32_t read_dentry_by_name (uint8_t* fname, dentry_t* dentry) {
-    uint32_t i = 0;
+    uint32_t i = 0, copy_len;
     uint8_t* cur_fname;
+    uint8_t fname_pad[FNAME_LEN];
     
     if (fname == NULL || dentry == NULL) {
         return -1;
     }
 
+    //pad fname to 32 bytes for comparison
+    for (i=0; i<FNAME_LEN; i++) fname_pad[i]=0;
+    copy_len = strlen((int8_t*)fname);
+    if (copy_len > FNAME_LEN) copy_len=FNAME_LEN;
+    strncpy((int8_t*)fname_pad, (int8_t*)fname, copy_len);
+
+    i=0;
     while (i<bootBlock.num_dentries) {
         cur_fname = (fileSys_addr+(i+1)*DENTRY_SIZE);
-        if (!strncmp((int8_t*)fname, (int8_t*)cur_fname, FNAME_LEN)) break;
+        if (!strncmp((int8_t*)fname_pad, (int8_t*)cur_fname, FNAME_LEN)) break;
         i++;
     }
     if (i==bootBlock.num_dentries) {
@@ -249,6 +257,7 @@ int32_t dir_open(const uint8_t* filename) {
 int32_t dir_close(int32_t fd) {
     return 0;
 }
+
 
 
 

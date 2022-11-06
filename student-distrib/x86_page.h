@@ -134,6 +134,16 @@ do {                                                             \
     (pde).P = 1;                                              \
 } while (0)
 
+/* unset an PDE_4M entry to point to a 4M page whose address given by base_addr */
+#define UNSET_PD_ENTRY_4M(pde)            \
+do {                                                             \
+    (pde).PBase_Addr = 0;       \
+    (pde).PS = 0;                                             \
+    (pde).U_S = 0;                                        \
+    (pde).R_W = 0;                                        \
+    (pde).P = 0;                                              \
+} while (0)
+
 /* set an PTE entry to point to a 4K page whose address given by base_addr */
 #define SET_PT_ENTRY(pte, base_addr, u_s, r_w)               \
 do {                                                             \
@@ -163,6 +173,18 @@ do {                                     \
     );                                   \
 } while (0)
 
+/* Flush_TLB.  reload cr3 to flush TLB */
+#define Flush_TLB()                      \
+do {                                     \
+    asm volatile (                       \
+        "movl %%cr3, %%eax;       \n\t"  \
+        "movl %%eax, %%cr3;       \n\t"  \
+            :                            \
+            :                            \
+            : "eax"                      \
+    );                                   \
+} while (0)
+
 
 /**********************************************************************/
 /*                                                                    */
@@ -170,6 +192,8 @@ do {                                     \
 /*                                                                    */
 /**********************************************************************/
 extern void init_paging();
+extern void map_4M(uint32_t vm, uint32_t phys);
+extern void unmap_4M(uint32_t vm, uint32_t phys);
 
 
 #endif //ASM

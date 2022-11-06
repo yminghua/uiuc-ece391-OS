@@ -8,9 +8,11 @@
 #include "types.h"
 #include "fileSystem.h"
 
-#define MASK 0x2000     // 8MB, mask esp to find PCB
+#define MASK 0x2000     // 8KB, mask esp to find PCB
 #define MAX_PNUM 10     // maximum process number, including the original boot up
 #define MAX_FD 8        // maximum fd number in a fd_array   
+#define KB 0x400
+#define MB 0x100000
 
 typedef struct {
     fdInfo_t fd_array[MAX_FD];
@@ -26,6 +28,7 @@ extern PCB_t *pid_table[MAX_PNUM];
 
 /*====extern functions====*/
 extern PCB_t * get_PCB();
+extern void  init_Syscall();
 
 
 #endif //PCB_H
