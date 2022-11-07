@@ -18,6 +18,7 @@ void clear(void);
 void clearwithcursor(int32_t num, int32_t complementnum);
 //void putcwithcursor(uint8_t c);       //finally, to make sure that other func needn't change, we make fix on the putc..
 void shiftupone();
+int get_screen_x();
 
 void* memset(void* s, int32_t c, uint32_t n);
 void* memset_word(void* s, int32_t c, uint32_t n);

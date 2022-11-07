@@ -14,6 +14,10 @@ static int screen_x;  //LYS: Set by us?
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
 
+//just get the screen_X position...
+int get_screen_x(){
+    return screen_x;
+}
 //extern int minxset = 25;
 //extern int minyset = 80;    //drush8: prepare for the special situation
 

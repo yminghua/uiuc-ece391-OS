@@ -5,7 +5,9 @@
 #include "Syscalls.h"
 
 
-PCB_t PCB_current;  // current PCB
+// PCB_t * PCB_current;  //consider the multi-core situation, finally we tries to get it everytimes in syscall.
+//fixed by drush8
+
 
 /* file operations table for each file type (stdin/stdout/rtc/dir/file) */
 static fileOpT_t stdin_jtable = {terminal_read, terminal_write, terminal_open, terminal_close};
@@ -15,14 +17,13 @@ static fileOpT_t dir_jtable = {dir_read, dir_write, dir_open, dir_close};
 static fileOpT_t file_jtable = {file_read, file_write, file_open, file_close};
 
 
-int32_t halt (uint32_t status) {
-    return 0;
-}
-
-
-int32_t execute (const uint8_t* command) {
-    return 0;
-}
+//int32_t halt (uint32_t status) {
+//    return 0;
+//}
+//int32_t execute (const uint8_t* command) {
+//    return 0;
+//}
+/**consider the special character of the halt&execute, we prepare the separate files**/
 
 
 /*
@@ -35,15 +36,17 @@ int32_t execute (const uint8_t* command) {
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes) {
 
+    PCB_t * PCB_current = get_PCB(); //
+
     /* check if inputs are valid */
-    if(fd < 0 || fd >= MAX_FD || PCB_current.fd_array[fd].flags == 0 || buf == NULL || nbytes < 0)
+    if(fd < 0 || fd >= MAX_FD || PCB_current->fd_array[fd].flags == 0 || buf == NULL || nbytes < 0)
         return -1;
     
     /* call the file-type-specific read function */
-    int ret = PCB_current.fd_array[fd].fileOpT_ptr.read(fd, buf, nbytes);
+    int ret = PCB_current->fd_array[fd].fileOpT_ptr.read(fd, buf, nbytes);
 
     if(ret != -1)
-        PCB_current.fd_array[fd].file_position += ret;  // update the file position in fd_array after reading
+        PCB_current->fd_array[fd].file_position += ret;  // update the file position in fd_array after reading
     
     return ret;
 }
@@ -60,12 +63,14 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes) {
  */
 int32_t write(int32_t fd, const void* buf, int32_t nbytes) {
 
+    PCB_t * PCB_current = get_PCB();
+
     /* check if inputs are valid */
-    if(fd < 0 || fd >= MAX_FD || PCB_current.fd_array[fd].flags == 0 || buf == NULL || nbytes < 0)
+    if(fd < 0 || fd >= MAX_FD || PCB_current->fd_array[fd].flags == 0 || buf == NULL || nbytes < 0)
         return -1;
 
     /* call the file-type-specific write function */
-    int ret = PCB_current.fd_array[fd].fileOpT_ptr.write(fd, buf, nbytes);
+    int ret = PCB_current->fd_array[fd].fileOpT_ptr.write(fd, buf, nbytes);
 
     return ret;
 }
@@ -81,6 +86,8 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes) {
  */
 int32_t open(const uint8_t* filename) {
 
+    PCB_t * PCB_current = get_PCB();
+
     int fd = -1;
     dentry_t dentry;
 
@@ -92,7 +99,7 @@ int32_t open(const uint8_t* filename) {
     while (i < MAX_FD)
     {
         /* allocate an unused fd */
-        if(PCB_current.fd_array[i].flags == 0) {
+        if(PCB_current->fd_array[i].flags == 0) {
             fd = i;
             break;
         }
@@ -102,27 +109,27 @@ int32_t open(const uint8_t* filename) {
         return -1;  // no fd is free
 
     /* set up the fd data */
-    PCB_current.fd_array[fd].flags = 1;
-    PCB_current.fd_array[fd].file_position = 0;
-    PCB_current.fd_array[fd].inode_index = 0;
+    PCB_current->fd_array[fd].flags = 1;
+    PCB_current->fd_array[fd].file_position = 0;
+    PCB_current->fd_array[fd].inode_index = 0;
 
     /* set up the file operations table and inode_index(for file only) */
     switch (dentry.file_type)
     {
     case 0:
         /* file type: rtc */
-        PCB_current.fd_array[fd].fileOpT_ptr = rtc_jtable;
+        PCB_current->fd_array[fd].fileOpT_ptr = rtc_jtable;
         break;
 
     case 1:
         /* file type: dir */
-        PCB_current.fd_array[fd].fileOpT_ptr = dir_jtable;
+        PCB_current->fd_array[fd].fileOpT_ptr = dir_jtable;
         break;
 
     case 2:
         /* file type: file */
-        PCB_current.fd_array[fd].fileOpT_ptr = file_jtable;
-        PCB_current.fd_array[fd].inode_index = dentry.inode_index;
+        PCB_current->fd_array[fd].fileOpT_ptr = file_jtable;
+        PCB_current->fd_array[fd].inode_index = dentry.inode_index;
         break;
     
     default:
@@ -130,7 +137,7 @@ int32_t open(const uint8_t* filename) {
     }
 
     /* call the file-type-specific open function */
-    PCB_current.fd_array[fd].fileOpT_ptr.open(filename);
+    PCB_current->fd_array[fd].fileOpT_ptr.open(filename);
 
     return fd;
 }
@@ -145,65 +152,87 @@ int32_t open(const uint8_t* filename) {
  */
 int32_t close(int32_t fd) {
 
+    PCB_t * PCB_current = get_PCB();
+
     /* check if fd is valid */
     if(fd < 2 || fd >= MAX_FD)   // not allow to close default fd (0 for input and 1 for output)
         return -1;
 
     /* call the file-type-specific close function */
-    int ret = PCB_current.fd_array[fd].fileOpT_ptr.close(fd);
+    int ret = PCB_current->fd_array[fd].fileOpT_ptr.close(fd);
     if(ret == 0)
-        PCB_current.fd_array[fd].flags = 0;     // successful close, make this fd available
+        PCB_current->fd_array[fd].flags = 0;     // successful close, make this fd available
 
     return ret;
 }
 
 
 int32_t getargs (uint8_t* buf, int32_t nbytes) {
+    PCB_t * PCB_current = get_PCB();
     return 0;
 }
 
 
 int32_t vidmap (uint8_t** screen_start) {
+    PCB_t * PCB_current = get_PCB();
     return 0;
 }
 
 
 int32_t set_handler (int32_t signum, void* handler_address) {
+    PCB_t * PCB_current = get_PCB();
     return 0;
 }
 
 
 int32_t sigreturn (void) {
+    PCB_t * PCB_current = get_PCB();
     return 0;
 }
 
 
+/* --------------------------- assistance functions ----------------------------- */
+
+int32_t openStdInOut(int pid){
+    PCB_t * PCB_current = (PCB_t *)(8*MB - (pid+1)*KB); //get the pid's pcb
+    /* Initialze STDIN */
+    PCB_current->fd_array[0].fileOpT_ptr = stdin_jtable;
+    PCB_current->fd_array[0].flags = 1;
+    stdin_jtable.open(NULL);
+
+    /* Initialize STDOUT */
+    PCB_current->fd_array[1].fileOpT_ptr = stdout_jtable;
+    PCB_current->fd_array[1].flags = 1;
+    stdout_jtable.open(NULL);
+}   
+//drush8: we never close the stdin/out, except that we halt this 
 
 /* --------------------------- test functions ----------------------------- */
 
 void Syscalls_test_file() {
 
+    PCB_t * PCB_current = get_PCB();
     /* Initialize PCB */
     int i;
     /* Set FD array */
     for(i = 0; i < MAX_FD ; i++)
     {
-        PCB_current.fd_array[i].fileOpT_ptr.read = 0;
-        PCB_current.fd_array[i].fileOpT_ptr.write = 0;
-        PCB_current.fd_array[i].fileOpT_ptr.open = 0;
-        PCB_current.fd_array[i].fileOpT_ptr.close = 0;
-        PCB_current.fd_array[i].flags = 0;
-        PCB_current.fd_array[i].file_position = 0;
-        PCB_current.fd_array[i].inode_index = 0;
+        PCB_current->fd_array[i].fileOpT_ptr.read = 0;
+        PCB_current->fd_array[i].fileOpT_ptr.write = 0;
+        PCB_current->fd_array[i].fileOpT_ptr.open = 0;
+        PCB_current->fd_array[i].fileOpT_ptr.close = 0;
+        PCB_current->fd_array[i].flags = 0;
+        PCB_current->fd_array[i].file_position = 0;
+        PCB_current->fd_array[i].inode_index = 0;
     }
 
     /* Initialze STDIN */
-    PCB_current.fd_array[0].fileOpT_ptr = stdin_jtable;
-    PCB_current.fd_array[0].flags = 1;
+    PCB_current->fd_array[0].fileOpT_ptr = stdin_jtable;
+    PCB_current->fd_array[0].flags = 1;
 
     /* Initialize STDOUT */
-    PCB_current.fd_array[1].fileOpT_ptr = stdout_jtable;
-    PCB_current.fd_array[1].flags = 1;
+    PCB_current->fd_array[1].fileOpT_ptr = stdout_jtable;
+    PCB_current->fd_array[1].flags = 1;
 
 
     fill_fname_list();
@@ -261,6 +290,7 @@ void Syscalls_test_file() {
 
 void Syscalls_test_dir() {
 
+    PCB_t * PCB_current = get_PCB();
     clear();
 
     /* Initialize PCB */
@@ -268,22 +298,22 @@ void Syscalls_test_dir() {
     /* Set FD array */
     for(i = 0; i < MAX_FD ; i++)
     {
-        PCB_current.fd_array[i].fileOpT_ptr.read = 0;
-        PCB_current.fd_array[i].fileOpT_ptr.write = 0;
-        PCB_current.fd_array[i].fileOpT_ptr.open = 0;
-        PCB_current.fd_array[i].fileOpT_ptr.close = 0;
-        PCB_current.fd_array[i].flags = 0;
-        PCB_current.fd_array[i].file_position = 0;
-        PCB_current.fd_array[i].inode_index = 0;
+        PCB_current->fd_array[i].fileOpT_ptr.read = 0;
+        PCB_current->fd_array[i].fileOpT_ptr.write = 0;
+        PCB_current->fd_array[i].fileOpT_ptr.open = 0;
+        PCB_current->fd_array[i].fileOpT_ptr.close = 0;
+        PCB_current->fd_array[i].flags = 0;
+        PCB_current->fd_array[i].file_position = 0;
+        PCB_current->fd_array[i].inode_index = 0;
     }
 
     /* Initialze STDIN */
-    PCB_current.fd_array[0].fileOpT_ptr = stdin_jtable;
-    PCB_current.fd_array[0].flags = 1;
+    PCB_current->fd_array[0].fileOpT_ptr = stdin_jtable;
+    PCB_current->fd_array[0].flags = 1;
 
     /* Initialize STDOUT */
-    PCB_current.fd_array[1].fileOpT_ptr = stdout_jtable;
-    PCB_current.fd_array[1].flags = 1;
+    PCB_current->fd_array[1].fileOpT_ptr = stdout_jtable;
+    PCB_current->fd_array[1].flags = 1;
 
     fill_fname_list();
     
@@ -324,6 +354,7 @@ void Syscalls_test_dir() {
 
 void Syscalls_test_terminal() {
 
+    PCB_t * PCB_current = get_PCB();
     clear();
 
     /* Initialize PCB */
@@ -331,22 +362,22 @@ void Syscalls_test_terminal() {
     /* Set FD array */
     for(i = 0; i < MAX_FD ; i++)
     {
-        PCB_current.fd_array[i].fileOpT_ptr.read = 0;
-        PCB_current.fd_array[i].fileOpT_ptr.write = 0;
-        PCB_current.fd_array[i].fileOpT_ptr.open = 0;
-        PCB_current.fd_array[i].fileOpT_ptr.close = 0;
-        PCB_current.fd_array[i].flags = 0;
-        PCB_current.fd_array[i].file_position = 0;
-        PCB_current.fd_array[i].inode_index = 0;
+        PCB_current->fd_array[i].fileOpT_ptr.read = 0;
+        PCB_current->fd_array[i].fileOpT_ptr.write = 0;
+        PCB_current->fd_array[i].fileOpT_ptr.open = 0;
+        PCB_current->fd_array[i].fileOpT_ptr.close = 0;
+        PCB_current->fd_array[i].flags = 0;
+        PCB_current->fd_array[i].file_position = 0;
+        PCB_current->fd_array[i].inode_index = 0;
     }
 
     /* Initialze STDIN */
-    PCB_current.fd_array[0].fileOpT_ptr = stdin_jtable;
-    PCB_current.fd_array[0].flags = 1;
+    PCB_current->fd_array[0].fileOpT_ptr = stdin_jtable;
+    PCB_current->fd_array[0].flags = 1;
 
     /* Initialize STDOUT */
-    PCB_current.fd_array[1].fileOpT_ptr = stdout_jtable;
-    PCB_current.fd_array[1].flags = 1;
+    PCB_current->fd_array[1].fileOpT_ptr = stdout_jtable;
+    PCB_current->fd_array[1].flags = 1;
 
     printf("\n\n kb testing, type what you want(maximun128 char)...\n");
 	printf("set 8 to make sure that test goes to terminal tests.\n");
@@ -356,7 +387,7 @@ void Syscalls_test_terminal() {
 	int num=40,readnum;
 	char testbuf[40];
 
-    PCB_current.fd_array[1].fileOpT_ptr.open(NULL);
+    PCB_current->fd_array[1].fileOpT_ptr.open(NULL);
     while(1){
         readnum = sys_read(1, (void *)testbuf, num);
 		if(sys_write(1, (void *)testbuf, readnum) > readnum) break;

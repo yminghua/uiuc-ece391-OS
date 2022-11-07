@@ -47,7 +47,7 @@ continue:
 
 keep_going:
     # Set up ESP so we can have an initial stack
-    movl    $0x800000, %esp  #LYS. 8MB
+    movl    $0x800000, %esp  # LYS. 8MB
 
     # Set up the rest of the segment selector registers
     movw    $KERNEL_DS, %cx

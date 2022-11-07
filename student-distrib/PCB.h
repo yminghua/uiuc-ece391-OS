@@ -29,6 +29,8 @@ extern PCB_t *pid_table[MAX_PNUM];
 /*====extern functions====*/
 extern PCB_t * get_PCB();
 extern void  init_Syscall();
-
+extern int init_PCB(int pid);//added by drush8.
+PCB_t * get_PCB_withpid(int pid);
+// extern void init_PCBtable();
 
 #endif //PCB_H

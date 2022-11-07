@@ -27,7 +27,7 @@ typedef struct kbstatus {
     uint8_t kbalready;      //stands for the buffer and kbstatus is ready now.
     uint8_t terminalreading; //now terminal is reading the buffer.
     uint8_t multiscanmode;  //mark as multiscancode will come.... begein with E0 or E1.
-    uint8_t setoffset;      //for the terminal to use:: used in '\b' situation
+    int8_t setoffset;      //for the terminal to use:: used in '\b' situation
 
     volatile uint8_t flag;           //means if this structure stable.1 stands busy. Will be changed to locks in the future for the multi_core.
 } kbstatus_t;
@@ -65,6 +65,7 @@ extern uint32_t kbbufpush(uint8_t bite);
 extern uint32_t kbwaitfree();
 extern uint32_t kbsetfree();
 extern uint32_t kbsetbusy();
+extern uint32_t kb_setoffset(int n);
 
 void keyboard_init();
 void keyboard_handler();

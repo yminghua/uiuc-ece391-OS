@@ -33,8 +33,9 @@ uint8_t std_scancodetoascii[89]= {
         0,0,0,0,0,0,0,                               //4F-55    4F-53 is keypad region
         0,0,0                                        //56,57,58
     };
-volatile int if9pressed = 0; //Warning, this is just for cp1 testing, 9 means open test of the RTC handler. We do not add lock, because it will only use twice.
-
+volatile int if9pressed = -5; //Warning, this is just for cp1 testing, 9 means open test of the RTC handler. We do not add lock, because it will only use twice.
+                              //set -5 means we won't use it anymore..
+                              
 uint8_t shift_scancodetoascii[89]= {
         0,  27,
         '!', '@', '#', '$', '%', '^', '&', '*','(', ')', '_', '+',
@@ -175,6 +176,7 @@ uint32_t kbbufpop(){
     //else c = DIFF(kbbuf.biteEP, kbbuf.biteBP)+kbstatus.setoffset;   //here for example, offset is num char of shell's prompt 
     //it is very sad that above method is useless on special situation...
     c = lengthbetween(kbbuf.biteEP);
+    if(kbbuf.linenum==0) c+=kbstatus.setoffset; //if it is the final line,we should consider the prompt..
     clearwithcursor(0,c);
   }
   if(dchar == '\t'){
@@ -190,7 +192,8 @@ uint32_t kbbufpop(){
 
 //push one char into the buffer. 
 uint32_t kbbufpush(uint8_t bite){
-  if(kbbuf.bitenum == 127 && bite !='\n') return 1; //buffer is almost full, we only accept '\n' for nearly full buffer.
+  //if(kbbuf.bitenum == 127 && bite !='\n') return 1; //buffer is almost full, we only accept '\n' for nearly full buffer.
+  //fixed by drush8: we do not force that the final one must be the \n.
   if(kbbuf.bitenum == 128) return 2; //totally full... return 2
   if(bite == '\n'){
     kbbuf.linelocbuf[kbbuf.lineEP] = kbbuf.biteEP;
@@ -273,6 +276,7 @@ char asciitranslate(int c){
 //9,8,7 and 0,-1,-2 are used to control the tests. free to use them to build your continuous tests!!! drush8
 void is9pressedset(int b){
             ////////
+  return; //we will abandon this test usage func..
   if (b == '9') {                        
     if(if9pressed == 0)if9pressed=1; 
     else if9pressed =0;

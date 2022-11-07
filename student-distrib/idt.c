@@ -68,7 +68,7 @@ void Init_IDT(void){
     SET_IDT_ENTRY(idt[0x21], keyboard_handler_linkage);
     /* vector index for system calls is 0x80 */
     //may only used in cp1.
-    // SET_IDT_ENTRY(idt[0x80], SYSTEM_CALL_handler);
+    SET_IDT_ENTRY(idt[0x80], SYSTEM_CALL_handler);
 
 }
 

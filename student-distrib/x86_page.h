@@ -193,6 +193,7 @@ do {                                     \
 /**********************************************************************/
 extern void init_paging();
 extern void map_4M(uint32_t vm, uint32_t phys);
+extern void map_4M_U(uint32_t vm, uint32_t phys);
 extern void unmap_4M(uint32_t vm, uint32_t phys);
 
 

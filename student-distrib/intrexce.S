@@ -4,6 +4,9 @@
 //for safety, we add the header func. Instead it is unnecessary.BUT ERROR.
 //create by drush8
 
+#define ASM     1
+#include "x86_desc.h"
+
 /* drush8:
  * Rather than create a case for each number of arguments, we simplify
  * use a macro. Well just learn form the sys_call.
@@ -14,23 +17,35 @@
 #define INTR_LINK(name,func)   \
 .GLOBL name                   ;\
 name:                         ;\
+	pushw %ds				  ;\
 	pushal                    ;\
 	pushfl                    ;\
+
+    movw    $KERNEL_DS, %di   ;\
+    movw    %di, %ds          ;\ 
+	 
 	call func                 ;\
 	popfl                     ;\
 	popal                     ;\
+	popw %ds				  ;\
 	iret                      ;\
 
 #define INTR_LINKR(name,func,n)\
 .GLOBL name                   ;\
 name:                         ;\
+	pushw %ds				  ;\
 	pushal                    ;\
 	pushfl                    ;\
+
+	movw    $KERNEL_DS, %di   ;\
+    movw    %di, %ds          ;\
+
     pushl   $n                 ;\
 	call func                 ;\
     addl	$4, %esp          ;\
 	popfl                     ;\
 	popal                     ;\
+	popw %ds				  ;\
 	iret                      ;\
 
 /* the interrupt_handler wrappers */

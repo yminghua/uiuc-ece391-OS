@@ -355,9 +355,6 @@ void launch_tests(){
 	Syscalls_test_file();
 	// Syscalls_test_dir();
 	// Syscalls_test_terminal();
-
-
-	list_all_files_by_name();
 	
 
 }

@@ -14,6 +14,7 @@
 #include "e391keyboard.h"
 #include "intrexcenum.h"
 #include "rtc.h"
+#include "Syscalls.h"
 //#include "e391device.h"       used in cp1, now is useless
 
 #define RUN_TESTS
@@ -170,6 +171,7 @@ void entry(unsigned long magic, unsigned long addr) {
     rtc_init();
 //drush8, now we only enable the keyboard.
 
+
     init_Syscall(); //LYS: initialize PCB_prime and pid_table
 
     sti();
@@ -177,6 +179,12 @@ void entry(unsigned long magic, unsigned long addr) {
 #ifdef RUN_TESTS
     /* Run tests */
     launch_tests();
+
+    while(1){
+        execute('./shell');
+        printf("shell crashed, try restarting...\n");
+    }
+
 #endif
     /* Execute the first program ("shell") ... */
 

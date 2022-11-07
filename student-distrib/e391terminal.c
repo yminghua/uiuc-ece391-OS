@@ -13,20 +13,34 @@
 int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes){
     if (buf == NULL) return 1;  //case: invalid input
     int flags,i,num=0;
-    uint8_t ln = 0;
+    uint8_t line_num = 0;
     int c=0;
     cli_and_save(flags);    // now, we open the critical section.
 
     kbstatus.terminalreading = 1;
-    while(ln==0){
-        sti();
-        for(i =0;i<5;i++);      //spend some time wait for the \n input... . drush8'sflag: can be sleeplock in future.
-        cli();
-        ln = kbbuf.linenum; //volatile in struct seems useless...
-    }
+
+    kb_setoffset(get_screen_x());  //before read, we set the base pos x of the screen(for the '\b' functionality.)
+    //
+    //while(ln==0){
+    //    sti();
+    //    for(i =0;i<5;i++);      //spend some time wait for the \n input... . drush8'sflag: can be sleeplock in future.
+    //    cli();
+    //    ln = kbbuf.linenum; //volatile in struct seems useless...
+    //}
+    //above realization is not so  pleased, fix it. drush8:11.6
+
+
     //printf("finish\n");
     //now there is at least one line in kb_buf
     while(num<nbytes){
+
+        while(line_num == 0){
+            sti();
+            for(i =0;i<5;i++);      //spend some time wait for the \n input... . drush8'sflag: can be sleeplock in future.
+            cli();
+            line_num = kbbuf.linenum;
+        }       //drush8: check is there is a complete line...
+
         c = kbbufconsume();
         if(c == '\n'){
             kbstatus.terminalreading = 0;

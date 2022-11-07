@@ -13,6 +13,7 @@
 
 
 /* System Call Wrapper */
+//only used for testing
 extern int32_t sys_halt (uint8_t status);
 extern int32_t sys_execute (const uint8_t* command);
 extern int32_t sys_read (int32_t fd, void* buf, int32_t nbytes);
@@ -25,9 +26,11 @@ extern int32_t sys_set_handler (int32_t signum, void* handler);
 extern int32_t sys_sigreturn (void);
 
 
-extern PCB_t PCB_current;
+//extern PCB_t *PCB_current;//we donot use it already.
 
 extern void SYSTEM_CALL_handler();
+
+
 
 /* -------------------- System Call Functions ---------------------- */
 
@@ -51,6 +54,13 @@ extern int32_t set_handler (int32_t signum, void* handler_address);
 
 extern int32_t sigreturn (void);
 
+/* ----------------------- assitance functions ------------------------ */
+
+extern int32_t openStdInOut(int pid);
+
+//below is the asm code in Execute_Halt.S
+extern int32_t asm_exec_end(uint32_t exe_ptr, uint32_t ustack_ptr, uint32_t kespaddr);
+extern int32_t asm_halt_end(uint32_t kesp, uint32_t kebp, uint32_t retvalue);
 
 /* ----------------------- test functions ------------------------ */
 

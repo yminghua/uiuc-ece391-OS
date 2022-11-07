@@ -130,10 +130,10 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
  *    RETURN VALUE: number of successfully read bytes
  */
 int32_t file_read(int32_t fd, void* buf, int32_t nbytes) {
-
+    PCB_t * PCB_current = get_PCB();
     /* get inode index and offset from fd array */
-    uint32_t inode = PCB_current.fd_array[fd].inode_index;
-    uint32_t offset = PCB_current.fd_array[fd].file_position;
+    uint32_t inode = PCB_current->fd_array[fd].inode_index;
+    uint32_t offset = PCB_current->fd_array[fd].file_position;
 
     uint32_t read_nbytes = read_data(inode, offset, (uint8_t*)buf, nbytes);
 
@@ -187,11 +187,11 @@ int32_t file_close(int32_t fd){
  *    RETURN VALUE: 0 on success, -1 on fail
  */
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
-
+    PCB_t * PCB_current = get_PCB();
     dentry_t d_dentry;
 
     // get the index of corresponding dentry from fd array
-    uint32_t index = PCB_current.fd_array[fd].file_position;
+    uint32_t index = PCB_current->fd_array[fd].file_position;
 
     int32_t check = read_dentry_by_index(index, &d_dentry);
 
@@ -401,15 +401,15 @@ void read_file_i(int f_idx) {
  * test file_open and file_read
  */
 void file_OpenRead_test() {
-
+    PCB_t * PCB_current = get_PCB();
     fill_fname_list();
     uint8_t* fname = all_fname_list[15];    // in this case: read "frame1.txt" (index is 15 in all_fname_list)
 
     /* set the file descriptor information */
 	int fd = 1;
-    PCB_current.fd_array[fd].inode_index = 0;
-    PCB_current.fd_array[fd].file_position = 0;
-    PCB_current.fd_array[fd].flags = 0;
+    PCB_current->fd_array[fd].inode_index = 0;
+    PCB_current->fd_array[fd].file_position = 0;
+    PCB_current->fd_array[fd].flags = 0;
 
 	int check = file_open(fname);
 	if (check == 0) {
@@ -463,12 +463,12 @@ void dir_OpenRead_test(int fd) {
  * print the infomation for all files in the directory
  */
 void Print_dir_test() {
-
+    PCB_t * PCB_current = get_PCB();
     /* set the file descriptor information */
 	int fd = 0;
-    PCB_current.fd_array[fd].inode_index = 0;
-    PCB_current.fd_array[fd].file_position = 0;
-    PCB_current.fd_array[fd].flags = 0;
+    PCB_current->fd_array[fd].inode_index = 0;
+    PCB_current->fd_array[fd].file_position = 0;
+    PCB_current->fd_array[fd].flags = 0;
 
 	int i;
 	for (i = 0; i < 17; i++)    // in total 17 files

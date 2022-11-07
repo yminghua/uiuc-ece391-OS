@@ -48,6 +48,12 @@ void map_4M(uint32_t vm, uint32_t phys) {
 	Flush_TLB();
 }
 
+//drush8: map vm addr to phys addr for the user
+void map_4M_U(uint32_t vm, uint32_t phys) {
+	SET_PD_ENTRY_4M(PD[vm>>22], phys, 1, 1);
+	Flush_TLB();
+}
+
 //LYS: unmap vm addr to phys addr
 void unmap_4M(uint32_t vm, uint32_t phys) {
 	//check if vm indeed been mapped to phys
