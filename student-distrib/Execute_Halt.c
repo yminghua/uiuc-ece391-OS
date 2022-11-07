@@ -18,6 +18,16 @@
 #define MaxCommand 128
 
 
+
+/*
+ *  execute:  (in80_jump_table_pointed)
+ *    DESCRIPTION: see manual for detail
+ *    INPUTS: command
+ *    OUTPUTS: set up new task with new (process)
+ *    RETURN VALUE: 0 success, -1 failure.
+ *    SIDE EFFECTS:
+ */
+
 int32_t execute (const uint8_t* command) {
     uint8_t* fnamep; //get this file name after parsing the command
     uint8_t fname[FNAME_LEN];       //drush8: we use the array instead.
@@ -33,7 +43,7 @@ int32_t execute (const uint8_t* command) {
     int fnamelen = 0;
 
     if (childpid==-1) {
-        printf("no more task slot, quit\n");
+        printf("no more task slot, quit...\n");
         return -1;
     }    
 
@@ -61,13 +71,13 @@ int32_t execute (const uint8_t* command) {
     //LYS: S T E P 3 :open and check file and copy prog image section
     fd = open((uint8_t*)fnamep);
     if (fd==-1) {
-        printf("file name %s does not exist, execute fail", fname);
+        printf("file name %s does not exist, execute fail...", fname);
         giveup_pid(childpid);
         return -1;
     }
     prog_code_start = file_check(fd);
     if (prog_code_start==-1) {
-        printf("file check file, %s is not an executable", fname);
+        printf("file check file, %s is not an executable...", fname);
         giveup_pid(childpid);
         return -1;
     }
@@ -100,6 +110,15 @@ int32_t execute (const uint8_t* command) {
     return result;
 }
 
+
+/*
+ *  halt:  (in80_jump_table_pointed)
+ *    DESCRIPTION: see manual for detail
+ *    INPUTS: command
+ *    OUTPUTS: rm/recycle/turn_down the task of the caller
+ *    RETURN VALUE: none, 1 for unexpected failure...
+ *    SIDE EFFECTS:
+ */
 //drush8's flag: can do some simplify work
 int32_t halt (uint32_t status) {
     PCB_t * pcurrent = get_PCB();
@@ -131,6 +150,12 @@ int32_t halt (uint32_t status) {
 
 
 
+/************************************************************/
+/************************************************************/
+//             assistance functions                         //
+/************************************************************/
+/************************************************************/
+
 //LYS: check whether a file is executable (by leading 4 bytes magical number.)
 //return value: if not exe, return -1. if is exe, return code virtual start addr of the program
 int file_check(int32_t fd) {
@@ -153,24 +178,29 @@ int file_check(int32_t fd) {
 }
 
 //LYS: get the smallest available pid (not in use in pid_table) and return it.
+//drush8:get it and then occupy this pid...
 //return value: available pid, or -1 if the pid_table is full
 int32_t get_new_pid() {
     int i;
     for (i=0; i<MAX_PNUM; i++) {
         if (!pid_table[i]) {
-            pid_table[i] = get_PCB_withpid(i);
+            pid_table[i] = get_PCB_withpid(i);      //occupy this pid.
             return i;
             }
     }
     return -1;
 }
 
+
+//drush8: give back this pid num
 int giveup_pid(uint32_t pid){
     if(pid>=MAX_PNUM) return 2; //fail, overload our pid array
     if(pid_table[pid]==NULL) return 1; //already freed.
     pid_table[pid]=NULL;
     return 0; 
 };
+
+
 
 /*LYS
  *  clear_file_position: set file position back to 0
@@ -183,6 +213,8 @@ void clear_file_position(int32_t fd) {
 
 
 //LYS: set up PD for exe (map vm 128MB to phys 8MB+4MB*(pid-1), big page) and load the program image
+//make sure there has been one correspondign fd opened.
+
 //drush8: first, we now do the mapping in the loader (may fix it in the future)
 // second: we will open a fd temporary in parent process to realize the load work.
 //(we will close it then during the execute sys_call)
@@ -209,12 +241,14 @@ int32_t getKStack(int32_t pid){
     return 8*MB - pid*8*KB;
 }
 
+//page switch
 //now the paging switch is a 'fake' one.
 //we operate on the same pt & pd instead
 void paging_switch(int old_pid, int new_pid){
     unmap_4M(128*MB, 8*MB+4*MB*(old_pid-1));
     if(new_pid!=0) map_4M_U(128*MB, 8*MB+4*MB*(new_pid-1));
 }
+
 
 //return the num of the args. and record the position of the args.
 //we fill the args_pointer pair by pair
@@ -257,6 +291,7 @@ int tiny_parse(int * args_pointer, const int8_t* command){
 }
 
 
+//not used yey drush8
 //small assistance func, get args len.
 int get_arg_len(int i, int j, const uint8_t* command){
     int len = 0;

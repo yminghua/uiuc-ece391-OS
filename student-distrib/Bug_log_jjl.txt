@@ -13,3 +13,10 @@ bug3. backspace should also deal with tab and \n simoutaniously.
 ==terminal==
 bug1. read should retrun when there is a line and meet a \n, or * there is a line and translated buf is full(reach the nbytes).
 bug2. don't forget the illegal checking.
+
+
+======CP3======
+bug1. for the file checking, make sure that 24-27 for starting address is little end..
+bug2. execute: why pushal will mess up the stack? still don't know
+bug3. don't forget to set the parent process.
+bug4. for the execute, we need to close the fd for that file after the loader, or we can just execute at most 9 times...
