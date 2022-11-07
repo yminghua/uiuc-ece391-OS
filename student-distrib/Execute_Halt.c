@@ -17,16 +17,6 @@
 #define MaxArgs 6 //drush8's flag: we os now accept 10 args for the command at most.
 #define MaxCommand 128
 
-int file_check(int32_t fd);
-int32_t get_new_pid();
-int giveup_pid(uint32_t pid);
-void clear_file_position(int32_t fd);
-void loader(int32_t fd, uint32_t pid);
-int tiny_parse(int * args_pointer, const uint8_t* command);
-int get_arg_len(int i, int j, const uint8_t* command); //drush8: warning: i<j is the must requiring
-
-void paging_switch(int new_pid, int old_pid);
-
 
 int32_t execute (const uint8_t* command) {
     uint8_t* fnamep; //get this file name after parsing the command
@@ -48,7 +38,7 @@ int32_t execute (const uint8_t* command) {
     }    
 
     //drush8: S T E P 2 : parse args
-    argsnum = tiny_parse(pair_args_pointer,command);
+    argsnum = tiny_parse(pair_args_pointer,(int8_t *)command);
     if(argsnum == 0) {
         giveup_pid(childpid);
         return 0; 
@@ -79,7 +69,7 @@ int32_t execute (const uint8_t* command) {
     if (prog_code_start==-1) {
         printf("file check file, %s is not an executable", fname);
         giveup_pid(childpid);
-        return -2;
+        return -1;
     }
     //drush8: S T E P 4: loader with paging
     loader(fd,childpid); //load program image into contiguous physical address
@@ -88,7 +78,9 @@ int32_t execute (const uint8_t* command) {
     close(fd);
 
     //drush8: S T E P 5: fill the PCB and open stdin/out for the child.
+    PCB_t * p = get_PCB();
     init_PCB(childpid);
+    pid_table[childpid]->parent_pid = p->pid;
     openStdInOut(childpid);
 
     //drush8: S T E P 6.1: seting the TSS segment
@@ -99,7 +91,6 @@ int32_t execute (const uint8_t* command) {
 
     //before the calling, we need to get the args and set the kebp&kesp.
     //consider in the following calling we'll push 2 32int args, we'll do additional work
-    PCB_t * p = get_PCB();
     register uint32_t the_ebp asm("ebp");
     //we won't use ebp in our asm, so save it in advance.
     p->kebp = the_ebp;
@@ -131,6 +122,7 @@ int32_t halt (uint32_t status) {
     PCB_t * pp = get_PCB_withpid(pcurrent->parent_pid);
     uint32_t kkesp = pp->kesp;
     uint32_t kkebp = pp->kebp;
+    giveup_pid(pcurrent->pid);
     asm_halt_end(kkesp,kkebp,status);
 
     printf("halt err: seriously cannot return to parents\n");
@@ -143,6 +135,7 @@ int32_t halt (uint32_t status) {
 //return value: if not exe, return -1. if is exe, return code virtual start addr of the program
 int file_check(int32_t fd) {
     uint8_t buf[EXE_HEADER_BYTES];
+    clear_file_position(fd);
     int bytes_read = read(fd, buf, EXE_HEADER_BYTES);
     uint32_t prog_start_vm=0;
 
@@ -155,7 +148,7 @@ int file_check(int32_t fd) {
     if (buf[3]!=EXE_MAG3) return -1;
 
     //it is a exe, return with program start virtal address
-    prog_start_vm = (buf[24]<<(32-8)) + (buf[25]<<(24-8)) + (buf[26]<<(16-8)) + (buf[27]<<(8-8));
+    prog_start_vm = (buf[27]<<(32-8)) + (buf[26]<<(24-8)) + (buf[25]<<(16-8)) + (buf[24]<<(8-8));
     return prog_start_vm;
 }
 
@@ -164,7 +157,10 @@ int file_check(int32_t fd) {
 int32_t get_new_pid() {
     int i;
     for (i=0; i<MAX_PNUM; i++) {
-        if (!pid_table[i]) return i;
+        if (!pid_table[i]) {
+            pid_table[i] = get_PCB_withpid(i);
+            return i;
+            }
     }
     return -1;
 }
@@ -192,7 +188,7 @@ void clear_file_position(int32_t fd) {
 //(we will close it then during the execute sys_call)
 void loader(int32_t fd, uint32_t pid) {
     uint32_t prog_pid = pid;
-    uint8_t *prog_img = PROG_LOAD_VM;
+    uint8_t *prog_img = (uint8_t *)PROG_LOAD_VM;
     map_4M_U(128*MB, 8*MB+4*MB*(prog_pid-1)); //we do flush TLB inside this
     //above warning drush8: give the page user privilege.
     clear_file_position(fd);
@@ -215,15 +211,15 @@ int32_t getKStack(int32_t pid){
 
 //now the paging switch is a 'fake' one.
 //we operate on the same pt & pd instead
-void paging_switch(int new_pid, int old_pid){
-    unmap_4M(128*MB, 8*MB+4*MB*(old_pid-1))
+void paging_switch(int old_pid, int new_pid){
+    unmap_4M(128*MB, 8*MB+4*MB*(old_pid-1));
     if(new_pid!=0) map_4M_U(128*MB, 8*MB+4*MB*(new_pid-1));
 }
 
 //return the num of the args. and record the position of the args.
 //we fill the args_pointer pair by pair
 //start pointer stuff is valid char, end pointer stuff is invalid char.
-int tiny_parse(int * args_pointer, const uint8_t* command){
+int tiny_parse(int * args_pointer, const int8_t* command){
     int len = strlen(command);
     char meetflag = 0;
     int i,j=0;

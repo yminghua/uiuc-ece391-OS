@@ -12,12 +12,12 @@ asm_exec_end:
 	movl	8(%esp), %ebx     # start pointer
 	movl	12(%esp), %ecx    # ustack pointer
 	movl	16(%esp), %edx    # kesp_loc
-    movl    %esp,   (%edx,,)  # save the parent kstack in PCB.
+    movl    %esp,   (%edx)  # save the parent kstack in PCB.
     # begin the iret work:
-    pushw   $USER_DS
+    pushl   $USER_DS
     pushl   %ecx
-    pushfl
-    pushw   $USER_CS
+    pushl   $0x00000202       # ????
+    pushl  $USER_CS
     pushl   %ebx
     iret                      # goes to the user program
 

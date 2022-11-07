@@ -62,6 +62,19 @@ extern int32_t openStdInOut(int pid);
 extern int32_t asm_exec_end(uint32_t exe_ptr, uint32_t ustack_ptr, uint32_t kespaddr);
 extern int32_t asm_halt_end(uint32_t kesp, uint32_t kebp, uint32_t retvalue);
 
+
+//below is used in the execute_halt.c
+extern int file_check(int32_t fd);
+extern int32_t get_new_pid();
+extern int giveup_pid(uint32_t pid);
+extern void clear_file_position(int32_t fd);
+extern void loader(int32_t fd, uint32_t pid);
+extern int tiny_parse(int * args_pointer, const int8_t* command);
+extern int get_arg_len(int i, int j, const uint8_t* command); //drush8: warning: i<j is the must requiring
+extern int32_t getUStack(int32_t pid);
+extern int32_t getKStack(int32_t pid);
+extern void paging_switch(int new_pid, int old_pid);
+
 /* ----------------------- test functions ------------------------ */
 
 extern void Syscalls_test_file ();

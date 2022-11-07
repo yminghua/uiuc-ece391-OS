@@ -12,6 +12,8 @@ void Print_exceptions(int vec_id){
     //maynot be correct after checkpoint1, we forbid the interrupt here. For page fault, we will add more feature in future.
     cli();
     clear();
+    register uint32_t save_cr2 ;
+    //register uint32_t save_cr2 asm("cr2");
     switch (vec_id)
     {
     case 0:
@@ -71,7 +73,15 @@ void Print_exceptions(int vec_id){
         break;
 
     case 14:
-        printf("Page_Fault!!!\n");
+        printf("Page_Fault!!! \n");
+            asm volatile(
+                "movl %%cr2, %%ebx;"
+				"movl %%ebx, %0;"
+				: "=a" (save_cr2)
+				: 
+				: "ebx"
+	);
+        printf("0x%#x",save_cr2);
         break;
 
     case 16:

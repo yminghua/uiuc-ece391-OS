@@ -57,8 +57,8 @@ void map_4M_U(uint32_t vm, uint32_t phys) {
 //LYS: unmap vm addr to phys addr
 void unmap_4M(uint32_t vm, uint32_t phys) {
 	//check if vm indeed been mapped to phys
-	if (!((PD[vm>>22].PBase_Addr)>>22 == phys)) {
-		printf("can't unmap this, vm %d and phys %d has not been mapped!", vm, phys);
+	if (!((PD[vm>>22].PBase_Addr)<<22 == phys)) {
+		printf("can't unmap this, vm %#x and phys %#x has not been mapped!", vm, phys);
 		return;
 	}
 	UNSET_PD_ENTRY_4M(PD[vm>>22]);

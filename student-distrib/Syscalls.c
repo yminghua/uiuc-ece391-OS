@@ -96,6 +96,7 @@ int32_t open(const uint8_t* filename) {
         return -1;
 
     int i = 2;  // start from 2 since 0 and 1 are used as default fd
+                // drush'sflag: may change for redirection
     while (i < MAX_FD)
     {
         /* allocate an unused fd */
@@ -168,25 +169,25 @@ int32_t close(int32_t fd) {
 
 
 int32_t getargs (uint8_t* buf, int32_t nbytes) {
-    PCB_t * PCB_current = get_PCB();
+    //PCB_t * PCB_current = get_PCB();
     return 0;
 }
 
 
 int32_t vidmap (uint8_t** screen_start) {
-    PCB_t * PCB_current = get_PCB();
+    //PCB_t * PCB_current = get_PCB();
     return 0;
 }
 
 
 int32_t set_handler (int32_t signum, void* handler_address) {
-    PCB_t * PCB_current = get_PCB();
+    //PCB_t * PCB_current = get_PCB();
     return 0;
 }
 
 
 int32_t sigreturn (void) {
-    PCB_t * PCB_current = get_PCB();
+    //PCB_t * PCB_current = get_PCB();
     return 0;
 }
 
@@ -194,7 +195,7 @@ int32_t sigreturn (void) {
 /* --------------------------- assistance functions ----------------------------- */
 
 int32_t openStdInOut(int pid){
-    PCB_t * PCB_current = (PCB_t *)(8*MB - (pid+1)*KB); //get the pid's pcb
+    PCB_t * PCB_current = (PCB_t *)(8*MB - (pid+1)*8*KB); //get the pid's pcb
     /* Initialze STDIN */
     PCB_current->fd_array[0].fileOpT_ptr = stdin_jtable;
     PCB_current->fd_array[0].flags = 1;
@@ -204,6 +205,7 @@ int32_t openStdInOut(int pid){
     PCB_current->fd_array[1].fileOpT_ptr = stdout_jtable;
     PCB_current->fd_array[1].flags = 1;
     stdout_jtable.open(NULL);
+    return 0;
 }   
 //drush8: we never close the stdin/out, except that we halt this 
 

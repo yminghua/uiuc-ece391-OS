@@ -14,16 +14,14 @@
 
 
 //we defined the assambly linkage macro to compute all the entrance of the interrrupt.
-#define INTR_LINK(name,func)   \
+#define INTR_LINK(name,func)\
 .GLOBL name                   ;\
 name:                         ;\
 	pushw %ds				  ;\
 	pushal                    ;\
 	pushfl                    ;\
-
     movw    $KERNEL_DS, %di   ;\
-    movw    %di, %ds          ;\ 
-	 
+    movw    %di, %ds          ;\
 	call func                 ;\
 	popfl                     ;\
 	popal                     ;\
@@ -36,11 +34,9 @@ name:                         ;\
 	pushw %ds				  ;\
 	pushal                    ;\
 	pushfl                    ;\
-
 	movw    $KERNEL_DS, %di   ;\
     movw    %di, %ds          ;\
-
-    pushl   $n                 ;\
+    pushl   $n                ;\
 	call func                 ;\
     addl	$4, %esp          ;\
 	popfl                     ;\

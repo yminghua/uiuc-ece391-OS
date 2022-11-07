@@ -7,7 +7,6 @@
 
 PCB_t *pid_table[MAX_PNUM];
 
-
 /**
  * drush8: set the PCB table entry to be 0.
  * 
@@ -43,14 +42,15 @@ int init_PCB(int pid) {
 
     pid_table[pid]->kebp = NULL;
     pid_table[pid]->kesp = NULL;
+    return 0;
 }
 
-extern void  init_Syscall() {
+void  init_Syscall() {
     int i;
     for (i=0; i<MAX_PNUM; i++) {
         pid_table[i]=NULL;
     }
     PCB_t *PCB_prime = (PCB_t *) (8*MB - 8*KB);
-    init_PCB(0);
     pid_table[0] = PCB_prime;
+    init_PCB(0);
 }

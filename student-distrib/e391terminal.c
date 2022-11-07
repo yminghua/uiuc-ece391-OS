@@ -108,7 +108,7 @@ int32_t terminal_write(int32_t fd,const void* buf, int32_t nbytes){
  */
 int32_t terminal_open(const uint8_t* filename){
     kb_init();
-    clear();
+    //clear();
     //just initialize the whole buffer in keyboard and clean the screen
     return 0;
 }
