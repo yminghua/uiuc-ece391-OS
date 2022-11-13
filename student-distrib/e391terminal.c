@@ -102,7 +102,9 @@ int32_t terminal_write(int32_t fd,const void* buf, int32_t nbytes){
  *   
  */
 
-
+int32_t terminal_fail(int32_t fd, void *buf, int32_t nbytes){
+    return-1;
+}
 
 
 /*   terminal_open

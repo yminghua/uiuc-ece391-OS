@@ -32,8 +32,31 @@ PCB_t * get_PCB_withpid(int pid) {
     return (PCB_t*)(8*MB-(pid+1)*8*KB);       //fix ebp to esp: drush8
 }
 
+//LYS: get the smallest available pid (not in use in pid_table) and return it.
+//drush8:get it and then occupy this pid...
+//return value: available pid, or -1 if the pid_table is full
+int32_t get_new_pid() {
+    int i;
+    for (i=0; i<MAX_PNUM; i++) {
+        if (!pid_table[i]) {
+            pid_table[i] = get_PCB_withpid(i);      //occupy this pid.
+            return i;
+            }
+    }
+    return -1;
+}
+
+
+//drush8: give back this pid num
+int giveup_pid(uint32_t pid){
+    if(pid>=MAX_PNUM) return 2; //fail, overload our pid array
+    if(pid_table[pid]==NULL) return 1; //already freed.
+    pid_table[pid]=NULL;
+    return 0; 
+};
 
 //init the PCB structure: set all FD unused, and set self pid
+//warning: do not check if the pid is used.
 //don'y set parent's, and don't open stdin/out for you!
 int init_PCB(int pid) {
     int i;
@@ -47,6 +70,7 @@ int init_PCB(int pid) {
 
     pid_table[pid]->kebp = NULL;
     pid_table[pid]->kesp = NULL;
+    pid_table[pid]->argstr[0] = '\0';
     return 0;
 }
 

@@ -10,8 +10,8 @@
 
 
 /* file operations table for each file type (stdin/stdout/rtc/dir/file) */
-static fileOpT_t stdin_jtable = {terminal_read, terminal_write, terminal_open, terminal_close};
-static fileOpT_t stdout_jtable = {terminal_read, terminal_write, terminal_open, terminal_close};
+static fileOpT_t stdin_jtable = {terminal_read, terminal_fail, terminal_open, terminal_close};
+static fileOpT_t stdout_jtable = {terminal_fail, terminal_write, terminal_open, terminal_close};
 static fileOpT_t rtc_jtable = {rtc_read, rtc_write, rtc_open, rtc_close};
 static fileOpT_t dir_jtable = {dir_read, dir_write, dir_open, dir_close};
 static fileOpT_t file_jtable = {file_read, file_write, file_open, file_close};
@@ -159,6 +159,7 @@ int32_t close(int32_t fd) {
     /* check if fd is valid */
     if(fd < 2 || fd >= MAX_FD)   // not allow to close default fd (0 for input and 1 for output)
         return -1;
+    if(PCB_current->fd_array[fd].flags == 0) return -1;  //cannota close an unopened fd.
 
     /* call the file-type-specific close function */
     int ret = PCB_current->fd_array[fd].fileOpT_ptr.close(fd);
@@ -170,8 +171,17 @@ int32_t close(int32_t fd) {
 
 
 int32_t getargs (uint8_t* buf, int32_t nbytes) {
-    //PCB_t * PCB_current = get_PCB();
-    return 0;
+    PCB_t * PCB_current = get_PCB();
+    int i,status = -1;
+    for(i=0;i<nbytes;i++){
+        buf[i] = PCB_current->argstr[i];
+        if(PCB_current->argstr[i]=='\0'){
+            status = 0;
+            break;
+        }
+    }
+    if(i==0) status = -1;
+    return status;
 }
 
 
@@ -183,13 +193,13 @@ int32_t vidmap (uint8_t** screen_start) {
 
 int32_t set_handler (int32_t signum, void* handler_address) {
     //PCB_t * PCB_current = get_PCB();
-    return 0;
+    return -1;
 }
 
 
 int32_t sigreturn (void) {
     //PCB_t * PCB_current = get_PCB();
-    return 0;
+    return -1;
 }
 
 
