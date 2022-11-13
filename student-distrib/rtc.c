@@ -87,8 +87,13 @@ int rtc_read(int32_t fd, void* buf, int32_t nbytes){
 
     rtc_interrupt_occur=0;
     // wait
-
-    while(!rtc_interrupt_occur){}
+    int i,j=rtc_interrupt_occur;
+    sti();  //we need to let the interrupt enable..
+    while(!j){
+        for(i=0;i<5;i++){}
+        j=rtc_interrupt_occur;
+    }
+    cli();
 
     // reset the rtc_interrupt_occur
     rtc_interrupt_occur=0;

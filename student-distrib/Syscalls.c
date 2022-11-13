@@ -46,8 +46,9 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes) {
     /* call the file-type-specific read function */
     int ret = PCB_current->fd_array[fd].fileOpT_ptr.read(fd, buf, nbytes);
 
-    if(ret != -1)
-        PCB_current->fd_array[fd].file_position += ret;  // update the file position in fd_array after reading
+    if(ret != -1 && ret != 0)
+        if(PCB_current->fd_array[fd].fileOpT_ptr.read == dir_read ) PCB_current->fd_array[fd].file_position += 1;
+        if(PCB_current->fd_array[fd].fileOpT_ptr.read == file_read ) PCB_current->fd_array[fd].file_position += ret;  // update the file position in fd_array after reading
     
     return ret;
 }
