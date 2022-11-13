@@ -73,6 +73,9 @@ int32_t terminal_write(int32_t fd,const void* buf, int32_t nbytes){
     //printf("writebegin\n");
     int i,total = 0;
     if (buf == NULL) return 1;  //case: invalid input
+    
+    //drush8's flag: for safety, we add critical region here.
+    cli();
 
     for(i=0;i<nbytes;i++){
         //if(*((uint8_t *)buf)=='\0') break;       //meet null,we stop.
@@ -87,6 +90,7 @@ int32_t terminal_write(int32_t fd,const void* buf, int32_t nbytes){
         total++;
     }
     //printf("writeend\n");
+    sti();
     return i;               //always write 'nbytes' successfully
 }
 
