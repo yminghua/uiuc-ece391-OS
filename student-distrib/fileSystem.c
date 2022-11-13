@@ -184,7 +184,7 @@ int32_t file_close(int32_t fd){
  *    INPUTS: fd: file descriptor
  *            buf: buffer to store the data
  *            nbytes: number of bytes to be read
- *    RETURN VALUE: 0 on success, -1 on fail
+ *    RETURN VALUE: 0 on run out of the file reading. or the length of the cur file's name
  */
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
     PCB_t * PCB_current = get_PCB();
@@ -198,9 +198,11 @@ int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
     if(check == 0)
         strncpy((int8_t*)buf, (int8_t*)d_dentry.file_name, FNAME_LEN);
     else
-        return -1;
-
-    return 1;   // update the index in file positon to read next file
+        return 0;//no files anymore...
+    int length = strlen((int8_t *)d_dentry.file_name);
+    if (length<=32) return length;
+    return 32;   // update the index in file positon to read next file
+//drush8's works.
 
 
     // /* print out the file information */
