@@ -104,9 +104,10 @@ typedef struct PTE {
 /*                           Global Variables                         */
 /*                                                                    */
 /**********************************************************************/
-//start memory address for Page Directory and Page Table, declared in .S file
+//start memory address for Page Directory and Page Table
 extern PDE_t PD[1024] __attribute__((aligned (0x1000)));
 extern PTE_t PT[1024] __attribute__((aligned (0x1000)));
+extern PTE_t PT_user[1024] __attribute__((aligned (0x1000)));
 
 
 /**********************************************************************/

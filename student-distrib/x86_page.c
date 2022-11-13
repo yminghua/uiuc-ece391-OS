@@ -11,6 +11,7 @@
 #define PAGING_SIZE 			1024
 PDE_t PD[1024] __attribute__((aligned (0x1000)));
 PTE_t PT[1024] __attribute__((aligned (0x1000)));
+PTE_t PT_user[1024] __attribute__((aligned (0x1000)));
 
 /*1. Initialize PD[0] to point to 0~4MB as 4KB pages (PD[0] points to our current only page table PT), 
   PD[1] points to 4~8MB as a 4MB page, PT[0] points to video memory.
