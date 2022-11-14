@@ -24,9 +24,9 @@ void init_paging() {
 		PD[i].val = 0;
 		PT[i].val = 0;
 	}
-    SET_PD_ENTRY_4K(PD[0], &PT[0], 1, 1);
-    SET_PT_ENTRY(PT[pt_vid_mem_entry], 0xB8000, 1, 1);
-    SET_PD_ENTRY_4M(PD[1], 0x400000, 1, 1);
+    SET_PD_ENTRY_4K(PD[0], &PT[0], 0, 1);
+    SET_PT_ENTRY(PT[pt_vid_mem_entry], 0xB8000, 0, 1);
+    SET_PD_ENTRY_4M(PD[1], 0x400000, 0, 1);
 
     asm volatile(
 			 	"movl %0, %%eax;"
