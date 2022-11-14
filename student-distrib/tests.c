@@ -4,6 +4,7 @@
 #include "types.h" //LYS
 #include "fileSystem.h"
 #include "Syscalls.h"
+#include "PCB.h" //LYS: for KB, MB, GB
 #include "lib.h"
 //#include "e391device.h"//drush8: can be cancelled when we doesn't use cp1: pageF test
 #include "e391terminal.h"
@@ -67,7 +68,7 @@ int page_test(){
 
 	int vm; //prev=0, cur=0
 	int result = PASS;
-	for (vm = 0; vm < 0x800001; vm++){  //for vm from 0 to 8MB+1
+	for (vm = 0; vm < 1*GB; vm++){  //for vm from 0 to 1GB
 		if (PD[vm>>22].P == 0) continue;
 		//big page
 		if (PD[vm>>22].PS == 1) {
@@ -324,6 +325,15 @@ int F_Print_dir_test(){
 
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
+int vidmap_test(){
+	page_test();
+	printf("===================================");
+	uint8_t *vm;
+	vm = (uint8_t *)(140*MB); //virtual addr at 140MB
+	vidmap(&vm);
+	page_test();
+	return 0;
+}
 /* Checkpoint 5 tests */
 
 
@@ -352,10 +362,11 @@ void launch_tests(){
 	
 
 	//C P 3 : T E S T I N G
-	Syscalls_test_file();
+	// Syscalls_test_file();
 	// Syscalls_test_dir();
 	// Syscalls_test_terminal();
-	
 
+	//C P 4 : T E S T I N G
+	vidmap_test();
 }
 

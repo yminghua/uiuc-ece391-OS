@@ -79,8 +79,12 @@ int32_t terminal_write(int32_t fd,const void* buf, int32_t nbytes){
 
     for(i=0;i<nbytes;i++){
         //if(*((uint8_t *)buf)=='\0') break;       //meet null,we stop.
-        if(*((uint8_t *)buf)!='\b'){ 
+        if(1  || *((uint8_t *)buf)!='\b'){ //we now don't consider the \b...
             if(*((uint8_t *)buf)!='\0') putc(*((uint8_t *)buf));
+            if(*((uint8_t *)buf)=='\n'){
+                int j;
+                for(j=1;j<5;j++){}  //drush8:debuging
+            }
         }
         else {
             clearwithcursor(1,0);                //most situation(even in all situation), this divagence won't happen
@@ -106,6 +110,9 @@ int32_t terminal_fail(int32_t fd, void *buf, int32_t nbytes){
     return-1;
 }
 
+int32_t terminal_failc(int32_t fd, const void *buf, int32_t nbytes){
+    return-1;
+}
 
 /*   terminal_open
  *   Function: syscall-like device driver 

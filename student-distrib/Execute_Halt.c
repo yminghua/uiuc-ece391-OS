@@ -45,7 +45,7 @@ int32_t execute (const uint8_t* command) {
 
     if (childpid==-1) {
         printf("no more task slot, quit...\n");
-        return -1;
+        return 1;//special situation, return 1 ...
     }    
 
     //drush8: S T E P 2 : parse args
@@ -78,7 +78,7 @@ int32_t execute (const uint8_t* command) {
     }
     prog_code_start = file_check(fd);
     if (prog_code_start==-1) {
-        printf("file check file, %s is not an executable...", fname);
+        printf("file check file, %s is not an executable", fname);
         giveup_pid(childpid);
         return -1;
     }

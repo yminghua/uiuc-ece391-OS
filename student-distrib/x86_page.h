@@ -104,9 +104,10 @@ typedef struct PTE {
 /*                           Global Variables                         */
 /*                                                                    */
 /**********************************************************************/
-//start memory address for Page Directory and Page Table, declared in .S file
+//start memory address for Page Directory and Page Table
 extern PDE_t PD[1024] __attribute__((aligned (0x1000)));
 extern PTE_t PT[1024] __attribute__((aligned (0x1000)));
+extern PTE_t PT_user[1024] __attribute__((aligned (0x1000)));
 
 
 /**********************************************************************/
@@ -122,6 +123,11 @@ do {                                                             \
     (pde).U_S = u_s&1;                                        \
     (pde).R_W = r_w&1;                                        \
     (pde).P = 1;                                              \
+} while (0)
+
+#define UNSET_PD_ENTRY_4K(pde)            \
+do {                                                             \
+    (pde).P = 0;                                              \
 } while (0)
 
 /* set an PDE_4M entry to point to a 4M page whose address given by base_addr */
@@ -153,7 +159,10 @@ do {                                                             \
     (pte).P = 1;                                              \
 } while (0)
 
-
+#define UNSET_PT_ENTRY(pte)               \
+do {                                                             \
+    (pte).P = 0;                                              \
+} while (0)
 /* enable_paging.  This macro takes a 32-bit passed in address of the page directory, load this to CR3 
  * and set the paging (PG) and protection (PE) bits of CR0, as well as enable PSE (4 MiB pages) through cr4 */
 #define enable_paging(pd)                \

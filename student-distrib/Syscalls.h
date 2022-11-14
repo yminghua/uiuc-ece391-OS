@@ -11,6 +11,7 @@
 #include "e391terminal.h"
 #include "e391keyboard.h"
 
+#define UVIDEOADDR 256*MB
 
 /* System Call Wrapper */
 //only used for testing
