@@ -328,9 +328,11 @@ int F_Print_dir_test(){
 int vidmap_test(){
 	page_test();
 	printf("===================================");
-	uint8_t *vm=140*MB; //virtual addr at 140MB
+	uint8_t *vm;
+	vm = (uint8_t *)(140*MB); //virtual addr at 140MB
 	vidmap(&vm);
 	page_test();
+	return 0;
 }
 /* Checkpoint 5 tests */
 

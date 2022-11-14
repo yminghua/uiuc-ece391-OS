@@ -11,6 +11,7 @@
 #include "e391terminal.h"
 #include "e391keyboard.h"
 
+#define UVIDEOADDR 256*MB
 
 /* System Call Wrapper */
 //only used for testing
@@ -74,6 +75,7 @@ extern int get_arg_len(int i, int j, const uint8_t* command); //drush8: warning:
 extern int32_t getUStack(int32_t pid);
 extern int32_t getKStack(int32_t pid);
 extern void paging_switch(int new_pid, int old_pid);
+extern int fillPCBargs(int *argsp, const uint8_t *command, int argnum, PCB_t *tarpcb,int mode);
 
 /* ----------------------- test functions ------------------------ */
 

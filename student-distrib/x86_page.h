@@ -125,6 +125,11 @@ do {                                                             \
     (pde).P = 1;                                              \
 } while (0)
 
+#define UNSET_PD_ENTRY_4K(pde)            \
+do {                                                             \
+    (pde).P = 0;                                              \
+} while (0)
+
 /* set an PDE_4M entry to point to a 4M page whose address given by base_addr */
 #define SET_PD_ENTRY_4M(pde, base_addr, u_s, r_w)            \
 do {                                                             \
@@ -154,7 +159,10 @@ do {                                                             \
     (pte).P = 1;                                              \
 } while (0)
 
-
+#define UNSET_PT_ENTRY(pte)               \
+do {                                                             \
+    (pte).P = 0;                                              \
+} while (0)
 /* enable_paging.  This macro takes a 32-bit passed in address of the page directory, load this to CR3 
  * and set the paging (PG) and protection (PE) bits of CR0, as well as enable PSE (4 MiB pages) through cr4 */
 #define enable_paging(pd)                \

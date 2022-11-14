@@ -178,12 +178,12 @@ void entry(unsigned long magic, unsigned long addr) {
 
 #ifdef RUN_TESTS
     /* Run tests */
-   launch_tests();
-    // const int8_t *sh = "./shell";
-    // while(1){
-    //     execute((uint8_t *)sh);
-    //     printf("shell crashed, try restarting...\n");
-    // }
+   //launch_tests();
+     const int8_t *sh = "./shell";
+     while(1){
+         execute((uint8_t *)sh);
+         printf("shell crashed, try restarting...\n");
+     }
 
 #endif
     /* Execute the first program ("shell") ... */

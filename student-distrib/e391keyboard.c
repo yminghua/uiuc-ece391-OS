@@ -320,6 +320,7 @@ void keyboard_init(void) {
 void keyboard_handler(void){
   //warning: drush'sflag. keyboard intr should not be interrupted by others. so, we don't protect the kb structs.
     cli();//for safety...
+    send_eoi(KEYBOARD_IRQ);
     //if(kbstatus.kbalready == 0) return; //by default this situation won't happen.
     int scancode;
     char asciicode;
@@ -388,7 +389,7 @@ void keyboard_handler(void){
       }
     }    
 
-    send_eoi(KEYBOARD_IRQ);
+//    send_eoi(KEYBOARD_IRQ);//move up to the start
     sti();//enable the intrrupts as soon as possible.
 
 }

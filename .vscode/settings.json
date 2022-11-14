@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "windows.h": "c",
-        "filesystem.h": "c",
-        "x86_desc.h": "c"
-    }
-}

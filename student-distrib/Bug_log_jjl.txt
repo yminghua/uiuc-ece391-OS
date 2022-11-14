@@ -20,3 +20,7 @@ bug1. for the file checking, make sure that 24-27 for starting address is little
 bug2. execute: why pushal will mess up the stack? still don't know
 bug3. don't forget to set the parent process.
 bug4. for the execute, we need to close the fd for that file after the loader, or we can just execute at most 9 times...
+
+======CP4======
+bug1. vidmap, at first we think the double pointer is used to pass the target virtual address...
+bug2. some small mistake when trying to split the argument, so fianlly leads that there is a " " at the final arguments.

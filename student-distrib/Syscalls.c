@@ -11,8 +11,8 @@
 
 
 /* file operations table for each file type (stdin/stdout/rtc/dir/file) */
-static fileOpT_t stdin_jtable = {terminal_read, terminal_write, terminal_open, terminal_close};
-static fileOpT_t stdout_jtable = {terminal_read, terminal_write, terminal_open, terminal_close};
+static fileOpT_t stdin_jtable = {terminal_read, terminal_failc, terminal_open, terminal_close};
+static fileOpT_t stdout_jtable = {terminal_fail, terminal_write, terminal_open, terminal_close};
 static fileOpT_t rtc_jtable = {rtc_read, rtc_write, rtc_open, rtc_close};
 static fileOpT_t dir_jtable = {dir_read, dir_write, dir_open, dir_close};
 static fileOpT_t file_jtable = {file_read, file_write, file_open, file_close};
@@ -160,6 +160,7 @@ int32_t close(int32_t fd) {
     /* check if fd is valid */
     if(fd < 2 || fd >= MAX_FD)   // not allow to close default fd (0 for input and 1 for output)
         return -1;
+    if(PCB_current->fd_array[fd].flags == 0) return -1;  //cannota close an unopened fd.
 
     /* call the file-type-specific close function */
     int ret = PCB_current->fd_array[fd].fileOpT_ptr.close(fd);
@@ -171,8 +172,17 @@ int32_t close(int32_t fd) {
 
 
 int32_t getargs (uint8_t* buf, int32_t nbytes) {
-    //PCB_t * PCB_current = get_PCB();
-    return 0;
+    PCB_t * PCB_current = get_PCB();
+    int i,status = -1;
+    for(i=0;i<nbytes;i++){
+        buf[i] = PCB_current->argstr[i];
+        if(PCB_current->argstr[i]=='\0'){
+            status = 0;
+            break;
+        }
+    }
+    if(i==0) status = -1;
+    return status;
 }
 
 
@@ -180,12 +190,12 @@ int32_t getargs (uint8_t* buf, int32_t nbytes) {
 int32_t vidmap (uint8_t** screen_start) {
     uint32_t vm = (uint32_t)(*screen_start);
 
-    //check whether *screen_start falls below 8MB
+    //check whether *screen_start falls below 8MB+(MAX_PNUM-1)*4MB
     if (vm<8*MB) return -1;
     //check whether *screen_start falls in program image area (between 128MB and 128MB+(MAX_PNUM-1)*4MB)
-    if ((vm>=128*MB)&&(vm<128*MB+(MAX_PNUM-1)*4*MB)) return -1;
+    //if ((vm>=128*MB)&&(vm<128*MB+(MAX_PNUM-1)*4*MB)) return -1;
 
-    //now map the vm to video memory. first set PD, then set PT
+    //now map the vm to video memory. first set PD, then set PD
     SET_PD_ENTRY_4K(PD[vm>>22], &PT_user[0], 0, 1);
     SET_PT_ENTRY(PT_user[(vm>>12)&(0x3FF)], 0xB8000, 0, 1);
     return 0;
@@ -194,17 +204,25 @@ int32_t vidmap (uint8_t** screen_start) {
 
 int32_t set_handler (int32_t signum, void* handler_address) {
     //PCB_t * PCB_current = get_PCB();
-    return 0;
+    return -1;
 }
 
 
 int32_t sigreturn (void) {
     //PCB_t * PCB_current = get_PCB();
-    return 0;
+    return -1;
 }
 
 
 /* --------------------------- assistance functions ----------------------------- */
+
+//well, just unmap video every time when user program is terminated...
+int32_t vidunmap(){
+    uint32_t vm = UVIDEOADDR;
+    UNSET_PD_ENTRY_4K(PD[vm>>22]);
+    UNSET_PT_ENTRY(PT_user[(vm>>12)&(0x3FF)]);
+    return 0;
+}
 
 int32_t openStdInOut(int pid){
     PCB_t * PCB_current = (PCB_t *)(8*MB - (pid+1)*8*KB); //get the pid's pcb

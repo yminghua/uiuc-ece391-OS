@@ -6,6 +6,7 @@
 #include "fileSystem.h"
 #include "x86_page.h"
 #include "x86_desc.h"
+#include "PCB.h"
 
 #define EXE_HEADER_BYTES 40
 #define EXE_MAG0 0x7f
@@ -44,7 +45,7 @@ int32_t execute (const uint8_t* command) {
 
     if (childpid==-1) {
         printf("no more task slot, quit...\n");
-        return -1;
+        return 1;//special situation, return 1 ...
     }    
 
     //drush8: S T E P 2 : parse args
@@ -81,17 +82,22 @@ int32_t execute (const uint8_t* command) {
         giveup_pid(childpid);
         return -1;
     }
-    //drush8: S T E P 4: loader with paging
-    loader(fd,childpid); //load program image into contiguous physical address
-    //ok,over loading, we can close the file.
 
-    close(fd);
-
-    //drush8: S T E P 5: fill the PCB and open stdin/out for the child.
+    //drush8: S T E P 4: fill the PCB and open stdin/out for the child.
     PCB_t * p = get_PCB();
     init_PCB(childpid);
     pid_table[childpid]->parent_pid = p->pid;
     openStdInOut(childpid);
+    //step additional: fill the args
+    fillPCBargs(pair_args_pointer,command, argsnum,pid_table[childpid],1);
+
+    //4&5 excanged, because of loading will cover the location of previous arg info
+
+    //drush8: S T E P 5: loader with paging
+    loader(fd,childpid); //load program image into contiguous physical address
+    //ok,over loading, we can close the file.
+
+    close(fd);
 
     //drush8: S T E P 6.1: seting the TSS segment
     tss.esp0 = (uint32_t)getKStack(childpid);
@@ -177,28 +183,7 @@ int file_check(int32_t fd) {
     return prog_start_vm;
 }
 
-//LYS: get the smallest available pid (not in use in pid_table) and return it.
-//drush8:get it and then occupy this pid...
-//return value: available pid, or -1 if the pid_table is full
-int32_t get_new_pid() {
-    int i;
-    for (i=0; i<MAX_PNUM; i++) {
-        if (!pid_table[i]) {
-            pid_table[i] = get_PCB_withpid(i);      //occupy this pid.
-            return i;
-            }
-    }
-    return -1;
-}
 
-
-//drush8: give back this pid num
-int giveup_pid(uint32_t pid){
-    if(pid>=MAX_PNUM) return 2; //fail, overload our pid array
-    if(pid_table[pid]==NULL) return 1; //already freed.
-    pid_table[pid]=NULL;
-    return 0; 
-};
 
 
 
@@ -276,7 +261,7 @@ int tiny_parse(int * args_pointer, const int8_t* command){
                 args_pointer[j++] = i;
             }
             if(command[i] == '\0'){
-                //end of this string
+                //end of this string// also we think the \n as end of the command line.
                 i++;//instead useless
                 break;
             }
@@ -290,6 +275,39 @@ int tiny_parse(int * args_pointer, const int8_t* command){
     }
 }
 
+//fill the args to the PCB, mode 1 means give up the first arg:command/file arg.
+int fillPCBargs(int *argsp, const uint8_t *command, int argnum, PCB_t *tarpcb,int mode){
+    //by default, pcbarglen should be the same as the maximun command len.
+    int i=0,j,start, end, status=0,pcbp=0;//0 means now is free status
+    //below one command is unnecessary, drush8: but for safety...
+    if(mode == 1) i=1;
+    
+    for(;i<argnum;i++){
+
+        if(pcbp >= PCB_ARGLEN-1){      //ready to write the final.
+            status = 1;
+            break;
+        }
+        start = argsp[i*2];
+        end = argsp[i*2+1];
+        for(j=0;j<end-start;j++){
+
+
+            if(pcbp == PCB_ARGLEN-1){   //ready to write the final.
+                status = 1;
+                break;
+            }
+
+            tarpcb->argstr[pcbp++] = command[start+j];
+        }
+
+        tarpcb->argstr[pcbp++] = ' ';
+
+    }
+    if (status == 0 ) tarpcb->argstr[pcbp-1] = '\0';
+    tarpcb->argstr[PCB_ARGLEN-1] = '\0';  //always 0, if cannot fit it, the final arg element will be truncated
+    return status;
+}
 
 //not used yey drush8
 //small assistance func, get args len.
