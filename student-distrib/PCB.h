@@ -9,7 +9,7 @@
 #include "fileSystem.h"
 
 #define MASK 0xFFFFE000     // 8KB, mask esp to find PCB
-#define MAX_PNUM 3     // maximum process number, including the original boot up
+#define MAX_PNUM 7     // maximum process number, including the original boot up
 #define MAX_FD 8        // maximum fd number in a fd_array   
 #define KB 0x400
 #define MB 0x100000
