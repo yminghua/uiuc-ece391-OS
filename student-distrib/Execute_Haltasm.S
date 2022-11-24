@@ -16,12 +16,12 @@
 
 asm_exec_end:
     pushl	%ebx
-	movl	8(%esp), %ebx     # start pointer
+	movl	8(%esp), %ebx     # start pointer (for eip)
 	movl	12(%esp), %ecx    # ustack pointer
 	movl	16(%esp), %edx    # kesp_loc
     movl    %esp,   (%edx)  # save the parent kstack in PCB.
     # begin the iret work:
-    pushl   $USER_DS
+    pushl   $USER_DS         # LYS. should be SS, but DS and SS makes no difference (CS is different for it contains previledge level)
     pushl   %ecx
     pushl   $0x00000202       # ????, pushfl won't work...
     pushl  $USER_CS
@@ -30,7 +30,7 @@ asm_exec_end:
 
 asm_halt_return:              # halt return finally jumps to parent's senario location here
     popl    %ebx              # halt jmp here.
-    ret
+    ret                       # LYS. the return addr is pushed on stack as the 'asm_exec_end' call in execute c function.
 
 
 

@@ -61,7 +61,7 @@ int32_t execute (const uint8_t* command) {
     if(fnamelen < 32){
         strncpy((int8_t*)fname, (int8_t*)command, fnamelen);
         fname[fnamelen] = '\0';
-        }
+    }
     else strncpy((int8_t*)fname, (int8_t*)command, 32);
 
     //below is: drush8's flag: small parse on dir.. will be fixed
@@ -112,8 +112,8 @@ int32_t execute (const uint8_t* command) {
     p->kebp = the_ebp;
 
     //drush8: S T E P 6.3: real final asm calling:
-    int32_t result = asm_exec_end(prog_code_start, getUStack(childpid),(int32_t)(&p->kesp));
-    return result;
+    int32_t result = asm_exec_end(prog_code_start, getUStack(childpid),(int32_t)(&p->kesp));  //LYS: This return from the child program's halt, return value is the 'status' input of the halt function. I believe 0 means success and -1 means fail
+    return result;  //This will return to the systemcall handler where we do iret again to go back to parent program user space
 }
 
 

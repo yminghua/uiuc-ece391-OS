@@ -41,7 +41,7 @@ int32_t get_new_pid() {
         if (!pid_table[i]) {
             pid_table[i] = get_PCB_withpid(i);      //occupy this pid.
             return i;
-            }
+        }
     }
     return -1;
 }
