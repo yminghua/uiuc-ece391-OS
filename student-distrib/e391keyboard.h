@@ -5,6 +5,8 @@
 
 //predefined macro constant
 
+#define NUMTERMINAL 3
+
 #define KBBUSY 1
 #define KBFREE 0
 //all is the pressed scan code.
@@ -15,6 +17,11 @@
 #define LALT_P 0x38
 #define CAPSLOCK_P 0x3A
 #define BACKSPACE_P 0x0E
+
+#define F1_P 0x3B
+#define F2_P 0x3C
+#define F3_P 0x3D
+
 #define TWOSCAN 0xE0
 #define THREESCAN 0xE1  //wont used in our kb.
 //defined structure
@@ -28,6 +35,10 @@ typedef struct kbstatus {
     uint8_t terminalreading; //now terminal is reading the buffer.
     uint8_t multiscanmode;  //mark as multiscancode will come.... begein with E0 or E1.
     int8_t setoffset;      //for the terminal to use:: used in '\b' situation
+    //mp3.5 adding: drush8: for convience, we save the cursor position in this kbstatus(though it is not the property of kb)
+    uint8_t cx;              //corresponding cursor position.        
+    uint8_t cy;              
+    uint32_t cur_videoaddr; // the corresponding video addr.    should be 0 or the corresponding no.
 
     volatile uint8_t flag;           //means if this structure stable.1 stands busy. Will be changed to locks in the future for the multi_core.
 } kbstatus_t;
@@ -52,9 +63,16 @@ typedef struct kb_buf {
 //    ...  vvvvvvvviiiiii   ... 
 //shows that ele pointed py the head pointer is valid, but the one by tail pointer is not.
 
-//extern data.. will be used by the terminal
+//extern data.. will be used by the terminal||
 extern kbstatus_t kbstatus;
 extern kb_buf_t kbbuf;
+
+//mp3.5 fixed to the multi_terminal mode.
+extern kbstatus_t kbstatus_for_multiterminal[NUMTERMINAL];
+extern kb_buf_t kbbuf_for_multiterminal[NUMTERMINAL];
+extern kbstatus_t *kbstatusp;
+extern kb_buf_t *kbbufp;
+
 
 extern uint32_t kb_init();
 extern uint32_t kb_Sinit();             //status init             
@@ -69,6 +87,7 @@ extern uint32_t kb_setoffset(int n);
 
 void keyboard_init();
 void keyboard_handler();
+uint32_t kb_status_ptr_set(int i);
 
 extern volatile int if9pressed; //drush8: used for testing in cp3.1&3.2
 /*******inline*********/

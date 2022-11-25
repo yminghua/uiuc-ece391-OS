@@ -4,6 +4,7 @@
 #include "intrexcenum.h"
 #include "types.h"
 #include "e391keyboard.h"
+#include "PCB.h"
 //#include "e391device.h"   used in cp1, now has been abandoned
 
 //create by drush8
@@ -15,6 +16,15 @@
 /*****status of the key board, used for the state divides*****/
 kbstatus_t kbstatus={0,0,0,0,0,0,0,0,0,0};
 kb_buf_t kbbuf;
+
+//mp3.5 additional:
+//we need that we will use the 
+kbstatus_t kbstatus_for_multiterminal[NUMTERMINAL];
+kb_buf_t kbbuf_for_multiterminal[NUMTERMINAL];
+kbstatus_t *kbstatusp;
+kb_buf_t *kbbufp;
+
+int nowterminalno; //it will be just used in this file scope. 
 
 //the standard scan code of the keyboard to ascii reference, we only complete part of them (including cahr and number)
 //the translation is referenced to linux0.11:KBD_US, we do't consider the correcness or compability after '/'
@@ -105,27 +115,27 @@ uint8_t alt_scancodetoascii[89]= {   //0x59
 //init the kbstatus structure.
 //return 0 always
 uint32_t kb_Sinit(){
-  kbstatus.altpressed = 0;
-  kbstatus.caplockon = 0;
-  kbstatus.flag = 0;
-  kbstatus.shiftpressed = 0;
-  kbstatus.controlpressed = 0;
-  kbstatus.terminalreading = 0;
-  kbstatus.multiscanmode = 0;
-  kbstatus.echo = 1; //echo to screen by default.
+  kbstatusp->altpressed = 0;
+  kbstatusp->caplockon = 0;
+  kbstatusp->flag = 0;
+  kbstatusp->shiftpressed = 0;
+  kbstatusp->controlpressed = 0;
+  kbstatusp->terminalreading = 0;
+  kbstatusp->multiscanmode = 0;
+  kbstatusp->echo = 1; //echo to screen by default.
   return 0;
 }  
         
 //init the kbbuffer structure.
 //return 0 always
 uint32_t kb_Binit(){
-  kbbuf.biteBP = 0;
-  kbbuf.biteEP = 0;
-  kbbuf.bitenum  =0;
+  kbbufp->biteBP = 0;
+  kbbufp->biteEP = 0;
+  kbbufp->bitenum  =0;
 
-  kbbuf.lineBP = 0;
-  kbbuf.lineEP = 0;
-  kbbuf.linenum = 0;      //line is combined with 
+  kbbufp->lineBP = 0;
+  kbbufp->lineEP = 0;
+  kbbufp->linenum = 0;      //line is combined with 
   return 0;
 }
 
@@ -133,25 +143,25 @@ uint32_t kb_Binit(){
 //combination of above two func
 uint32_t kb_init(){
   kb_Sinit();kb_Binit();
-  kbstatus.setoffset = 0;
-  kbstatus.kbalready = 1;
+  kbstatusp->setoffset = 0;
+  kbstatusp->kbalready = 1;
   return 0;
 }
 
 //setting the offset.
 //(may used in cp3, make sure backspace won't clean the prompt of the shell)
 uint32_t kb_setoffset(int n){
-  kbstatus.setoffset = n;
+  kbstatusp->setoffset = n;
   return 0;
 }
 
 //assistance func: return the last line length in th ebuf.
 int lengthbetween(int index){
   int num=0;
-  while(index != kbbuf.biteBP && kbbuf.bitebuf[DIFF(index,1)]!='\n'){
+  while(index != kbbufp->biteBP && kbbufp->bitebuf[DIFF(index,1)]!='\n'){
     index = DIFF(index,1);
-    if(kbbuf.bitebuf[index] != '\0'){
-      if(kbbuf.bitebuf[index] == '\t') num+=4;
+    if(kbbufp->bitebuf[index] != '\0'){
+      if(kbbufp->bitebuf[index] == '\t') num+=4;
       else num+=1;
     } 
   }
@@ -160,23 +170,23 @@ int lengthbetween(int index){
 
 //pop out the highest one char in the queue.(used by the backspace)
 uint32_t kbbufpop(){
-  if(kbbuf.bitenum==0) return 1;   //no char anymore.
-  kbbuf.biteEP = POS(kbbuf.biteEP-1);
-  kbbuf.bitenum--;
-  uint8_t dchar = kbbuf.bitebuf[POS(kbbuf.biteEP)];
+  if(kbbufp->bitenum==0) return 1;   //no char anymore.
+  kbbufp->biteEP = POS(kbbufp->biteEP-1);
+  kbbufp->bitenum--;
+  uint8_t dchar = kbbufp->bitebuf[POS(kbbufp->biteEP)];
   if (dchar == '\n'){
-    kbbuf.lineEP = POS(kbbuf.lineEP-1);
-    kbbuf.linenum--;
+    kbbufp->lineEP = POS(kbbufp->lineEP-1);
+    kbbufp->linenum--;
   }//if the delete char is \n, we need to fix the lineposition correctly.
-  if (kbstatus.echo == 0) return 0; //if the echo is closed, don't care about the screen.
+  if (kbstatusp->echo == 0) return 0; //if the echo is closed, don't care about the screen.
 
   if(dchar == '\n'){
     int c;
-    //if (kbbuf.linenum!=0) c = DIFF(kbbuf.biteEP, kbbuf.linelocbuf[kbbuf.lineEP-1])-1;
-    //else c = DIFF(kbbuf.biteEP, kbbuf.biteBP)+kbstatus.setoffset;   //here for example, offset is num char of shell's prompt 
+    //if (kbbufp->linenum!=0) c = DIFF(kbbufp->biteEP, kbbufp->linelocbuf[kbbufp->lineEP-1])-1;
+    //else c = DIFF(kbbufp->biteEP, kbbufp->biteBP)+kbstatup->setoffset;   //here for example, offset is num char of shell's prompt 
     //it is very sad that above method is useless on special situation...
-    c = lengthbetween(kbbuf.biteEP);
-    if(kbbuf.linenum==0) c+=kbstatus.setoffset; //if it is the final line,we should consider the prompt..
+    c = lengthbetween(kbbufp->biteEP);
+    if(kbbufp->linenum==0) c+=kbstatusp->setoffset; //if it is the final line,we should consider the prompt..
     clearwithcursor(0,c);
   }
   if(dchar == '\t'){
@@ -192,18 +202,18 @@ uint32_t kbbufpop(){
 
 //push one char into the buffer. 
 uint32_t kbbufpush(uint8_t bite){
-  //if(kbbuf.bitenum == 127 && bite !='\n') return 1; //buffer is almost full, we only accept '\n' for nearly full buffer.
+  //if(kbbufp->bitenum == 127 && bite !='\n') return 1; //buffer is almost full, we only accept '\n' for nearly full buffer.
   //fixed by drush8: we do not force that the final one must be the \n.
-  if(kbbuf.bitenum == 128) return 2; //totally full... return 2
+  if(kbbufp->bitenum == 128) return 2; //totally full... return 2
   if(bite == '\n'){
-    kbbuf.linelocbuf[kbbuf.lineEP] = kbbuf.biteEP;
-    kbbuf.lineEP = POS(kbbuf.lineEP+1);
-    kbbuf.linenum++;
+    kbbufp->linelocbuf[kbbufp->lineEP] = kbbufp->biteEP;
+    kbbufp->lineEP = POS(kbbufp->lineEP+1);
+    kbbufp->linenum++;
   }
-  kbbuf.bitebuf[kbbuf.biteEP] = bite;
-  kbbuf.biteEP = POS(kbbuf.biteEP+1);
-  kbbuf.bitenum++;
-  if (kbstatus.echo == 0) return 0; //if the echo is closed, don't care about the screen.
+  kbbufp->bitebuf[kbbufp->biteEP] = bite;
+  kbbufp->biteEP = POS(kbbufp->biteEP+1);
+  kbbufp->bitenum++;
+  if (kbstatusp->echo == 0) return 0; //if the echo is closed, don't care about the screen.
   if(bite != '\0' ) putc(bite); //safety check: drush8
   //well echo is 1 , we need to put it on the screen
   return 0;
@@ -211,14 +221,14 @@ uint32_t kbbufpush(uint8_t bite){
 
 //consume by terminal fetching. the direction is from the head to the tail. the consume num is 1 default in this func.
 uint32_t kbbufconsume(){    
-  if(kbbuf.bitenum==0) return 1; //no more bites
-  char c = kbbuf.bitebuf[kbbuf.biteBP];
+  if(kbbufp->bitenum==0) return 1; //no more bites
+  char c = kbbufp->bitebuf[kbbufp->biteBP];
   if(c == '\n'){
-    kbbuf.lineBP = POS(kbbuf.lineBP+1);
-    kbbuf.linenum--;
+    kbbufp->lineBP = POS(kbbufp->lineBP+1);
+    kbbufp->linenum--;
   }
-  kbbuf.bitenum--;
-  kbbuf.biteBP=POS(kbbuf.biteBP+1);
+  kbbufp->bitenum--;
+  kbbufp->biteBP=POS(kbbufp->biteBP+1);
   return c;
 }
 
@@ -231,43 +241,92 @@ uint32_t kbwaituntilfree(){
   return 0;
 }
 uint32_t kbsetfree(){
-  kbstatus.flag = 0;
+  kbstatusp->flag = 0;
   return 0;
 }
 uint32_t kbsetbusy(){
-  kbstatus.flag = 1;
+  kbstatusp->flag = 1;
   return 0;
 }
 
 
 //below two will used by terminal reading. related to the crtl+l functionality.
 uint32_t kbsetreading(){
-  kbstatus.terminalreading = 1;
+  kbstatusp->terminalreading = 1;
     return 0;
 }
 
 uint32_t kbunsetreading(){
-  kbstatus.terminalreading = 0;
+  kbstatusp->terminalreading = 0;
     return 0;
 }
 
 
 //below three is assistance func. they will be  all used by the inter_handler.
 
+
+void savexyposition(){
+  kbstatusp->cx = get_screen_x();
+  kbstatusp->cy = get_screen_y();
+}
+
+uint32_t kb_status_ptr_set(int i){
+  if(i>=NUMTERMINAL) return 1;
+  kbstatusp = &kbstatus_for_multiterminal[i];
+  kbbufp = &kbbuf_for_multiterminal[i];
+  return 0;
+}
+
+void kbstatusswitch(int terno){ 
+  //terno should be from 0 to max-1
+  //terno is the no. of the kbstatus you want to switch:
+  kb_status_ptr_set(terno);
+  set_screen_xy(kbstatusp->cx,kbstatusp->cy);
+  set_video_mem(terno+1);
+}
+
+
 //ctrl+l functionality.
 void ctrllfunc(){
-  if(kbstatus.terminalreading == 0){
+  if(kbstatusp->terminalreading == 0){
     kb_init();
   }
   clear();
 }
 
+//ctrl+F1,2,3 functionality.
+void altfnfunc(int no){
+  //for safety, we store position again.
+  savexyposition();
+  int now, previous;
+  previous = nowterminalno;
+  now = no;
+  nowterminalno = now;    //we will use now&previous in the following code, and here we give nowteminalno right value.
+
+  //0.0: now's kbstatus have the real video addr, but previous has only its back buffer one...
+  kb_status_ptr_set(now);
+  //set_screen_xy(kbstatusp->cx,kbstatusp->cy);//in lib.c we switch the position...
+  kbstatusp->cur_videoaddr = BVIDEO(0);
+  kb_status_ptr_set(previous);
+  kbstatusp->cur_videoaddr = BVIDEO(previous+1);
+
+  //0. 
+
+  //then 1. save the real video stuff to the previous' back video space
+  memmove(BVIDEO(previous+1),BVIDEO(0),4*1024);  //here we have to know that: 0 real, 1,2,3 is the coresponding addr. so need to add 1.
+  //2. copy the now's back video space stuff to the real video mapping.
+  memmove(BVIDEO(0),BVIDEO(now+1),4*1024);
+  //3. drush8'sflag: call the scheduler to switch to the corresponding terminal... now we don't realize it
+
+  return;
+}
+
 //do scancode to ascii code translation
 char asciitranslate(int c){
   //we give out the priority: first is the alt, then shift, finall caplock
-  if(kbstatus.altpressed!=0) return alt_scancodetoascii[c];
-  if(kbstatus.shiftpressed!=0) return shift_scancodetoascii[c];
-  if(kbstatus.caplockon!=0) return caplock_scancodetoascii[c];
+  if(kbstatusp->altpressed!=0) return alt_scancodetoascii[c];
+  if(kbstatusp->shiftpressed!=0) return shift_scancodetoascii[c];
+  if(kbstatusp->caplockon!=0) return caplock_scancodetoascii[c];
   return std_scancodetoascii[c];
 }
 
@@ -306,10 +365,17 @@ void is9pressedset(int b){
  *   Return Value: none
  */
 void keyboard_init(void) {
-    kb_init();
-    enable_irq(KEYBOARD_IRQ); 
+    int i;
+    for(i=0;i<NUMTERMINAL;i++){
+      kb_status_ptr_set(i);
+      kb_init();
+      kbstatusp->cur_videoaddr = BVIDEO(i+1);
+    }
+    kb_status_ptr_set(0);
+    nowterminalno = 0;
+    kbstatusp->cur_videoaddr = BVIDEO(0);
+    enable_irq(KEYBOARD_IRQ);
 }
-
 
 /*   keyboard_handler
  *   Function: the KBUS handler
@@ -321,42 +387,46 @@ void keyboard_handler(void){
   //warning: drush'sflag. keyboard intr should not be interrupted by others. so, we don't protect the kb structs.
     cli();//for safety...
     send_eoi(KEYBOARD_IRQ);
-    //if(kbstatus.kbalready == 0) return; //by default this situation won't happen.
+    //if(kbstatusp->kbalready == 0) return; //by default this situation won't happen.
     int scancode;
     char asciicode;
     if((inb(0x64)&1)==1){    //8042a protocol. That status bit means there is scan code available in 0x60 port.
       scancode = inb(0x60);//get the scancode.
-      if(kbstatus.multiscanmode==0){    //well, there is no multiscancode comes here
+      if(kbstatusp->multiscanmode==0){    //well, there is no multiscancode comes here
         if(scancode == 0xE0 || scancode == 0xE1){
-          kbstatus.multiscanmode = scancode + 1 -0xE0;
+          kbstatusp->multiscanmode = scancode + 1 -0xE0;
           return;   //set the mode then return
         }
         if(scancode<0x80){// well, that is the key being pressed now.
           switch(scancode) {
           case CAPSLOCK_P:
-            kbstatus.caplockon = 1-kbstatus.caplockon;
+            kbstatusp->caplockon = 1-kbstatusp->caplockon;
             break;
           case LCTRL_P: 
-            kbstatus.controlpressed++;
+            kbstatusp->controlpressed++;
             break;
           case LSHIFT_P: 
-            kbstatus.shiftpressed++;
+            kbstatusp->shiftpressed++;
             break;
           case LALT_P: 
-            kbstatus.altpressed++;
+            kbstatusp->altpressed++;
             break;
           case RSHIFT_P: 
-            kbstatus.shiftpressed++;
+            kbstatusp->shiftpressed++;
             break;
           case BACKSPACE_P:
-            if(kbstatus.kbalready == 1) kbbufpop();
+            if(kbstatusp->kbalready == 1) kbbufpop();
             break;
+          case F1_P:
+          case F2_P:
+          case F3_P:
+            if(kbstatusp->altpressed>0) {altfnfunc(scancode-F1_P);break;}
           case L_P:   //is l pressed?
-            if(kbstatus.controlpressed>0) {ctrllfunc();break;}    //here we clean the screen, but not the buf of keyboard.
+            if(kbstatusp->controlpressed>0) {ctrllfunc();break;}    //here we clean the screen, but not the buf of keyboard.
           default:
             asciicode = asciitranslate(scancode);
             if(asciicode == '\0') break;                          //useless or the situation we dont consider, as if it is untyped by the kb.
-            if(kbstatus.kbalready ==1) kbbufpush(asciicode);
+            if(kbstatusp->kbalready ==1) kbbufpush(asciicode);
             is9pressedset(asciicode); //only used for the testing argument setting.
           }
         }
@@ -364,16 +434,16 @@ void keyboard_handler(void){
           scancode -=0x80;
                     switch(scancode) {
           case LCTRL_P: 
-            if(kbstatus.controlpressed>0) kbstatus.controlpressed--;
+            if(kbstatusp->controlpressed>0) kbstatusp->controlpressed--;
             break;
           case LSHIFT_P: 
-            if(kbstatus.shiftpressed>0) kbstatus.shiftpressed--;
+            if(kbstatusp->shiftpressed>0) kbstatusp->shiftpressed--;
             break;
           case LALT_P: 
-            if(kbstatus.altpressed>0) kbstatus.altpressed--;
+            if(kbstatusp->altpressed>0) kbstatusp->altpressed--;
             break;
           case RSHIFT_P: 
-            if(kbstatus.shiftpressed>0) kbstatus.shiftpressed--;
+            if(kbstatusp->shiftpressed>0) kbstatusp->shiftpressed--;
             break;
           default:
             break;
@@ -383,13 +453,15 @@ void keyboard_handler(void){
       }
 
       else{   //now is in the multiscancode situation
-          kbstatus.multiscanmode--;
-          //if(scancode == LCTRL_P) kbstatus.controlpressed ++;  //well this means the right control is pressed now.
-          //if(scancode == LCTRL_P+0x80 && kbstatus.controlpressed>0) kbstatus.controlpressed --;//it is released!!
+          kbstatusp->multiscanmode--;
+          //if(scancode == LCTRL_P) kbstatusp->controlpressed ++;  //well this means the right control is pressed now.
+          //if(scancode == LCTRL_P+0x80 && kbstatusp->controlpressed>0) kbstatusp->controlpressed --;//it is released!!
       }
     }    
 
 //    send_eoi(KEYBOARD_IRQ);//move up to the start
+    //mp3.5: we need to reset the x,y video position everytime there is a key pressed.
+    savexyposition();
     sti();//enable the intrrupts as soon as possible.
 
 }

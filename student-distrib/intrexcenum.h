@@ -18,4 +18,5 @@
 
 #define KEYBOARD_IRQ 1
 #define RTC_IRQ 8
+#define PIT_IRQ 0
 #endif /* INTREXCENUM_H */

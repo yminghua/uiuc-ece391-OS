@@ -33,3 +33,16 @@ typedef struct sche_node{
     sche_node_t *next;
     sche_node_t *prev;
 } sche_node_t;
+
+
+/**********************************************************************/
+/*                                                                    */
+/*                           PIT stuff                                */
+/*                                                                    */
+/**********************************************************************/
+
+#define CCZERO 0x40
+#define CMDPORT 0x43
+
+void set_pit_count(uint16_t count);
+void pit_init();

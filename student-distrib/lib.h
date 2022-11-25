@@ -19,6 +19,11 @@ void clearwithcursor(int32_t num, int32_t complementnum);
 //void putcwithcursor(uint8_t c);       //finally, to make sure that other func needn't change, we make fix on the putc..
 void shiftupone();
 int get_screen_x();
+int get_screen_y();
+int set_screen_xy(int x, int y);
+int set_video_mem(int i);
+
+#define BVIDEO(x) (0xB8000 + 0x1000 * x) //back up video page for terminal 1, 2, 3
 
 void* memset(void* s, int32_t c, uint32_t n);
 void* memset_word(void* s, int32_t c, uint32_t n);

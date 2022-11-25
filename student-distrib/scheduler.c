@@ -4,6 +4,9 @@
 
 #include "scheduler.h"
 #include "Syscalls.h"
+#include "lib.h"
+#include "types.h"
+#include "intrexcenum.h"
 
 /* scheduler() - round-robin for 3 process
  * created by LYS
@@ -50,9 +53,39 @@ void init_multiple_terminal() {
 
 
 
+/*
+ * 
+ * 
+ * 
+ * drush8: below is the code of the PIT
+ * for the OS, only init func will be called in the critical section at beginning.
+ * 
+ * 
+ * 
+*/
+
+
+void set_pit_count(uint16_t count) {
+	// Disable interrupts
+	cli();
+ 
+	// Set low byte
+	outb(count&0xFF,CCZERO);		// Low byte
+	outb((count&0xFF00)>>8,CCZERO);	// High byte
+	return;
+}
+
+
 /* pit_init() - initialize pit
  * created by drush8
  */
+// pit base frequency is 1.193182 MHz
+// what we need is 20--100hz
+// so we set the devider as: 16384, so the final hz is 72.82
+// 2^14, so we need to set as 0100 0000 0000 0000 
 void pit_init() {
-
+    outb(0x34, CMDPORT);               //0x34 == 0b00110100 ::  channel 0, lobyte/hibyte, rate generator
+    set_pit_count(0x4000);
+    enable_irq(PIT_IRQ);  //unmask the irq of the PIT(0).
+    return;
 }

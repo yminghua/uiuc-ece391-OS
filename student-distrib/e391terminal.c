@@ -17,7 +17,7 @@ int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes){
     int c=0;
     cli_and_save(flags);    // now, we open the critical section.
 
-    kbstatus.terminalreading = 1;
+    kbstatusp->terminalreading = 1;
 
     kb_setoffset(get_screen_x());  //before read, we set the base pos x of the screen(for the '\b' functionality.)
     //
@@ -38,12 +38,12 @@ int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes){
             sti();
             for(i =0;i<5;i++);      //spend some time wait for the \n input... . drush8'sflag: can be sleeplock in future.
             cli();
-            line_num = kbbuf.linenum;
+            line_num = kbbufp->linenum;
         }       //drush8: check is there is a complete line...
 
         c = kbbufconsume();
         if(c == '\n'){
-            kbstatus.terminalreading = 0;
+            kbstatusp->terminalreading = 0;
             restore_flags(flags);
             *((char *)buf++) = '\n';
 
@@ -54,7 +54,7 @@ int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes){
         *((char *)buf) = (char)c;
         buf++;
     }
-    kbstatus.terminalreading = 0;
+    kbstatusp->terminalreading = 0;
     restore_flags(flags);
     //now num is equal to the nbytes..
     //BUG:if the buffer is full, we do not add a \0 anymore

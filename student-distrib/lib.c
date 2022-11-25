@@ -10,6 +10,7 @@
 #define ATTRIB      0x7  //LYS: This's a color?
 #define CURSORATTRIB 0x8F   //the blinking '_'
 
+
 static int screen_x;  //LYS: Set by us?
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
@@ -18,6 +19,22 @@ static char* video_mem = (char *)VIDEO;
 int get_screen_x(){
     return screen_x;
 }
+//just get the screen_y position...
+int get_screen_y(){
+    return screen_y;
+}
+//just set the position...
+int set_screen_xy(int x, int y){
+    screen_x = x;
+    screen_y = y;
+    return 0;
+}
+
+int set_video_mem(int i){
+    video_mem = (char *)BVIDEO(i);
+    return 0;
+}
+
 //extern int minxset = 25;
 //extern int minyset = 80;    //drush8: prepare for the special situation
 
