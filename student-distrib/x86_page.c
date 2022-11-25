@@ -45,24 +45,24 @@ void init_paging() {
 
 //LYS: map vm addr to phys addr
 void map_4M(uint32_t vm, uint32_t phys) {
-	uint32_t phys_;
-	if (PD[vm>>22].P) {
-		phys_ = (PD[vm>>22].PBase_Addr)<<22;
-		printf("can't map this, vm %#x has already been mapped to phys %#x\n", vm, phys_);
-		return;
-	}
+	// uint32_t phys_;
+	// if (PD[vm>>22].P) {
+	// 	phys_ = (PD[vm>>22].PBase_Addr)<<22;
+	// 	printf("can't map this, vm %#x has already been mapped to phys %#x\n", vm, phys_);
+	// 	return;
+	// }
 	SET_PD_ENTRY_4M(PD[vm>>22], phys, 0, 1);
 	Flush_TLB();
 }
 
 //drush8: map vm addr to phys addr for the user
 void map_4M_U(uint32_t vm, uint32_t phys) {
-	uint32_t phys_;
-	if (PD[vm>>22].P) {
-		phys_ = (PD[vm>>22].PBase_Addr)<<22;
-		printf("can't map this, vm %#x has already been mapped to phys %#x\n", vm, phys_);
-		return;
-	}
+	// uint32_t phys_;
+	// if (PD[vm>>22].P) {
+	// 	phys_ = (PD[vm>>22].PBase_Addr)<<22;
+	// 	printf("can't map this, vm %#x has already been mapped to phys %#x\n", vm, phys_);
+	// 	return;
+	// }
 	SET_PD_ENTRY_4M(PD[vm>>22], phys, 1, 1);
 	Flush_TLB();
 }
@@ -81,12 +81,12 @@ void unmap_4M(uint32_t vm) {
 
 //LYS: map vm addr to phys addr
 void map_4K(uint32_t vm, uint32_t phys) {
-	uint32_t phys_;
-	if (PD[vm>>22].P && PT[(PD[vm>>22].PTBase_Addr)].P) {
-		phys_ = PT[(PD[vm>>22].PTBase_Addr)].PBase_Addr << 12;
-		printf("can't map this, vm %#x has already been mapped to phys %#x\n", vm, phys_);
-		return;
-	}
+	// uint32_t phys_;
+	// if (PD[vm>>22].P && PT[(PD[vm>>22].PTBase_Addr)].P) {
+	// 	phys_ = PT[(PD[vm>>22].PTBase_Addr)].PBase_Addr << 12;
+	// 	printf("can't map this, vm %#x has already been mapped to phys %#x\n", vm, phys_);
+	// 	return;
+	// }
 	SET_PD_ENTRY_4K(PD[vm>>22], &PT[0], 0, 1);
 	SET_PT_ENTRY(PT[(vm>>12)&(0x3F)], phys, 0, 1);
 	Flush_TLB();
@@ -94,12 +94,12 @@ void map_4K(uint32_t vm, uint32_t phys) {
 
 //LYS: map vm addr to phys addr for the user
 void map_4K_U(uint32_t vm, uint32_t phys) {
-	uint32_t phys_;
-	if (PD[vm>>22].P && PT_user[(PD[vm>>22].PTBase_Addr)].P) {
-		phys_ = PT_user[(PD[vm>>22].PTBase_Addr)].PBase_Addr << 12;
-		printf("can't map this, vm %#x has already been mapped to phys %#x\n", vm, phys_);
-		return;
-	}
+	// uint32_t phys_;
+	// if (PD[vm>>22].P && PT_user[(PD[vm>>22].PTBase_Addr)].P) {
+	// 	phys_ = PT_user[(PD[vm>>22].PTBase_Addr)].PBase_Addr << 12;
+	// 	printf("can't map this, vm %#x has already been mapped to phys %#x\n", vm, phys_);
+	// 	return;
+	// }
 	SET_PD_ENTRY_4K(PD[vm>>22], &PT_user[0], 1, 1);
 	SET_PT_ENTRY(PT_user[(vm>>12)&(0x3F)], phys, 1, 1);
 	Flush_TLB();
