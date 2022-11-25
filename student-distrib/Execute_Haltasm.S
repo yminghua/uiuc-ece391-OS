@@ -16,7 +16,7 @@
 
 asm_exec_end:
     pushl	%ebx
-	movl	8(%esp), %ebx     # start pointer (for eip)
+	movl	8(%esp), %ebx     # prog_code_start, code start pointer (for eip)
 	movl	12(%esp), %ecx    # ustack pointer
 	movl	16(%esp), %edx    # kesp_loc
     movl    %esp,   (%edx)  # save the parent kstack in PCB.

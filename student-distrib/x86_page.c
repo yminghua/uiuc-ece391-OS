@@ -45,23 +45,77 @@ void init_paging() {
 
 //LYS: map vm addr to phys addr
 void map_4M(uint32_t vm, uint32_t phys) {
+	uint32_t phys_;
+	if (PD[vm>>22].P) {
+		phys_ = (PD[vm>>22].PBase_Addr)<<22;
+		printf("can't map this, vm %#x has already been mapped to phys %#x\n", vm, phys_);
+		return;
+	}
 	SET_PD_ENTRY_4M(PD[vm>>22], phys, 0, 1);
 	Flush_TLB();
 }
 
 //drush8: map vm addr to phys addr for the user
 void map_4M_U(uint32_t vm, uint32_t phys) {
+	uint32_t phys_;
+	if (PD[vm>>22].P) {
+		phys_ = (PD[vm>>22].PBase_Addr)<<22;
+		printf("can't map this, vm %#x has already been mapped to phys %#x\n", vm, phys_);
+		return;
+	}
 	SET_PD_ENTRY_4M(PD[vm>>22], phys, 1, 1);
 	Flush_TLB();
 }
 
-//LYS: unmap vm addr to phys addr
-void unmap_4M(uint32_t vm, uint32_t phys) {
-	//check if vm indeed been mapped to phys
-	if (!((PD[vm>>22].PBase_Addr)<<22 == phys)) {
-		printf("can't unmap this, vm %#x and phys %#x has not been mapped!", vm, phys);
+//LYS: unmap vm addr
+void unmap_4M(uint32_t vm) {
+	//check if vm already been unmapped
+	if (!(PD[vm>>22].P)) {
+		printf("can't unmap this, vm %#x is not presented", vm);
 		return;
 	}
-	UNSET_PD_ENTRY_4M(PD[vm>>22]);
+	UNSET_PD_ENTRY(PD[vm>>22]);
+	Flush_TLB();
+}
+
+
+//LYS: map vm addr to phys addr
+void map_4K(uint32_t vm, uint32_t phys) {
+	uint32_t phys_;
+	if (PD[vm>>22].P && PT[(PD[vm>>22].PTBase_Addr)].P) {
+		phys_ = PT[(PD[vm>>22].PTBase_Addr)].PBase_Addr << 12;
+		printf("can't map this, vm %#x has already been mapped to phys %#x\n", vm, phys_);
+		return;
+	}
+	SET_PD_ENTRY_4K(PD[vm>>22], &PT[0], 0, 1);
+	SET_PT_ENTRY(PT[(vm>>12)&(0x3F)], phys, 0, 1);
+	Flush_TLB();
+}
+
+//LYS: map vm addr to phys addr for the user
+void map_4K_U(uint32_t vm, uint32_t phys) {
+	uint32_t phys_;
+	if (PD[vm>>22].P && PT_user[(PD[vm>>22].PTBase_Addr)].P) {
+		phys_ = PT_user[(PD[vm>>22].PTBase_Addr)].PBase_Addr << 12;
+		printf("can't map this, vm %#x has already been mapped to phys %#x\n", vm, phys_);
+		return;
+	}
+	SET_PD_ENTRY_4K(PD[vm>>22], &PT_user[0], 1, 1);
+	SET_PT_ENTRY(PT_user[(vm>>12)&(0x3F)], phys, 1, 1);
+	Flush_TLB();
+}
+
+//LYS: unmap vm addr to phys addr
+void unmap_4K(uint32_t vm) {
+	//check if vm already been unmapped
+	if (!(PD[vm>>22].P)) {
+		printf("can't unmap this, vm %#x is not presented", vm);
+		return;
+	}
+
+	PTE_t *PT_ = (PTE_t *)(((uint32_t)(PD[vm>>22].PTBase_Addr))<<12);
+	int PT_addr = (vm&0x003FF000)>>12;
+	UNSET_PT_ENTRY(PT_[PT_addr]);
+	UNSET_PD_ENTRY(PD[vm>>22]);
 	Flush_TLB();
 }

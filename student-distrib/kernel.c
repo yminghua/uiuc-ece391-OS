@@ -15,6 +15,7 @@
 #include "intrexcenum.h"
 #include "rtc.h"
 #include "Syscalls.h"
+#include "scheduler.h" //LYS
 //#include "e391device.h"       used in cp1, now is useless
 
 #define RUN_TESTS
@@ -181,8 +182,9 @@ void entry(unsigned long magic, unsigned long addr) {
    //launch_tests();
      const int8_t *sh = "./shell";
      while(1){
-         execute((uint8_t *)sh);
-         printf("shell crashed, try restarting...\n");
+        //  execute((uint8_t *)sh);
+        init_multiple_terminal();
+        printf("shell crashed, try restarting...\n");
      }
 
 #endif

@@ -230,7 +230,7 @@ int32_t getKStack(int32_t pid){
 //now the paging switch is a 'fake' one.
 //we operate on the same pt & pd instead
 void paging_switch(int old_pid, int new_pid){
-    unmap_4M(128*MB, 8*MB+4*MB*(old_pid-1));
+    unmap_4M(128*MB);
     if(new_pid!=0) map_4M_U(128*MB, 8*MB+4*MB*(new_pid-1));
 }
 

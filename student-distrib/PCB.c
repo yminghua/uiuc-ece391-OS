@@ -71,6 +71,7 @@ int init_PCB(int pid) {
     pid_table[pid]->kebp = NULL;
     pid_table[pid]->kesp = NULL;
     pid_table[pid]->argstr[0] = '\0';
+    pid_table[pid]->visible = 0;
     return 0;
 }
 
