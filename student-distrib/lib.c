@@ -35,6 +35,11 @@ int set_video_mem(int i){
     return 0;
 }
 
+int set_definite_video_mem(uint32_t addr){
+    video_mem = (char *) addr;
+    return 0 ;
+}
+
 //extern int minxset = 25;
 //extern int minyset = 80;    //drush8: prepare for the special situation
 

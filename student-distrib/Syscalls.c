@@ -4,7 +4,7 @@
 
 #include "Syscalls.h"
 #include "x86_page.h"
-
+#include "scheduler.h"
 
 // PCB_t * PCB_current;  //consider the multi-core situation, finally we tries to get it everytimes in syscall.
 //fixed by drush8
@@ -194,15 +194,13 @@ int32_t vidmap (uint8_t** screen_start) {
     //uint32_t vm = (uint32_t)(*screen_start);
     uint32_t vm = UVIDEOADDR;
 
-    //check whether *screen_start falls below 8MB
-    //if (vm<8*MB) return -1;
-    //check whether *screen_start falls in program image area (between 128MB and 128MB+(MAX_PNUM-1)*4MB)
-    //if ((vm>=128*MB)&&(vm<128*MB+(MAX_PNUM-1)*4*MB)) return -1;
-
     //now map the vm to video memory. first set PD, then set PT
+    PCB_t * p = get_PCB();
+    //PCB_t * pp = get_PCB_withpid(p->parent_pid);
     SET_PD_ENTRY_4K(PD[vm>>22], &PT_user[0], 1, 1);
-    SET_PT_ENTRY(PT_user[(vm>>12)&(0x3FF)], 0xB8000, 1, 1);
-
+    if (p->visible) SET_PT_ENTRY(PT_user[(vm>>12)&(0x3FF)], 0xB8000, 1, 1);
+    else SET_PT_ENTRY(PT_user[(vm>>12)&(0x3FF)], BackupVP(p->pid), 1, 1);
+    
     * screen_start = (uint8_t *)vm;
 
     return 0;

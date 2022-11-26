@@ -22,7 +22,7 @@ typedef struct {
     uint32_t kebp;
     uint32_t pid;
     uint32_t parent_pid;
-    uint32_t visible;
+    uint32_t visible;  //1 for visible, 0 for not
     uint8_t argstr[PCB_ARGLEN];    //drush8: warning, another restriction is in execute_halt.c. Now they are the same:128 at 11.13
     uint8_t noterminal;            //shows the belonging terminal number(by default from 1 to 3);
 } PCB_t;

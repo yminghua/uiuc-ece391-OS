@@ -72,7 +72,7 @@ extern kbstatus_t kbstatus_for_multiterminal[NUMTERMINAL];
 extern kb_buf_t kbbuf_for_multiterminal[NUMTERMINAL];
 extern kbstatus_t *kbstatusp;
 extern kb_buf_t *kbbufp;
-
+extern int nowterminalno;
 
 extern uint32_t kb_init();
 extern uint32_t kb_Sinit();             //status init             
@@ -88,6 +88,9 @@ extern uint32_t kb_setoffset(int n);
 void keyboard_init();
 void keyboard_handler();
 uint32_t kb_status_ptr_set(int i);
+int savexypositionwithindex(int i);
+int restorexypositionwithindex(int i);
+void savexyposition();
 
 extern volatile int if9pressed; //drush8: used for testing in cp3.1&3.2
 /*******inline*********/

@@ -4,24 +4,6 @@
 
 #include "PCB.h"
 
-/**********************************************************************/
-/*                                                                    */
-/*                           Global Variable                          */
-/*                                                                    */
-/**********************************************************************/
-//scheduler list
-sche_node_t sche_list[3];
-sche_node_t *cur_sche_node;
-
-//video
-#define BackupVP(x) (0xB8000 + 0x1000 * x) //back up video page for terminal 1, 2, 3
-
-//visible terminal
-uint32_t cur_visible_pid;
-
-
-
-
 
 /**********************************************************************/
 /*                                                                    */
@@ -30,9 +12,39 @@ uint32_t cur_visible_pid;
 /**********************************************************************/
 typedef struct sche_node{
     PCB_t *pcb_ptr;
-    sche_node_t *next;
-    sche_node_t *prev;
+    struct sche_node *next;
+    struct sche_node *prev;
 } sche_node_t;
+
+/**********************************************************************/
+/*                                                                    */
+/*                     Global Variable and Macro                      */
+/*                                                                    */
+/**********************************************************************/
+//scheduler list
+extern sche_node_t sche_list[3];
+extern sche_node_t *cur_sche_node;
+
+//video
+#define BackupVP(x) (0xB8000 + 0x1000 * x) //back up video page for terminal 1, 2, 3
+
+//visible terminal
+extern uint32_t cur_visible_terminal;
+
+
+/**********************************************************************/
+/*                                                                    */
+/*                             Functions                              */
+/*                                                                    */
+/**********************************************************************/
+//from scheduler.c
+extern void scheduler();
+extern void init_multiple_terminal();
+
+//from scheduler_asm_helper.S
+extern void scheduler_asm(uint32_t kesp, uint32_t kebp, uint32_t kespaddr);
+extern void asm_init_terminal_stack(uint32_t kstack_ptr, uint32_t ustack_ptr, uint32_t exe_ptr);
+
 
 
 /**********************************************************************/
@@ -46,3 +58,6 @@ typedef struct sche_node{
 
 void set_pit_count(uint16_t count);
 void pit_init();
+
+
+

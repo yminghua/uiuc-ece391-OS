@@ -2,8 +2,23 @@
 #include "e391terminal.h"
 #include "e391keyboard.h"
 #include "lib.h"
+#include "PCB.h"
 
 //create by drush8
+kbstatus_t *previous1;
+kb_buf_t *previous2;
+//assitance func:
+void kb_saveAchange(){
+    int terminalindex = get_PCB()->noterminal;
+    previous1 = kbstatusp;
+    previous2 = kbbufp;
+    kbstatusp = &kbstatus_for_multiterminal[terminalindex-1];
+    kbbufp = &kbbuf_for_multiterminal[terminalindex-1];
+}
+void kb_restore(){
+    kbstatusp = previous1;
+    kbbufp = previous2;
+}
 
 /*   terminal_read
  *   Function: syscall-like device driver 
@@ -16,6 +31,10 @@ int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes){
     uint8_t line_num = 0;
     int c=0;
     cli_and_save(flags);    // now, we open the critical section.
+
+
+    kb_saveAchange();
+
 
     kbstatusp->terminalreading = 1;
 
@@ -48,6 +67,9 @@ int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes){
             *((char *)buf++) = '\n';
 
             if(num+1<nbytes) *((char *)buf) = '\0'; //if there is spare room, we kindly add a \0 for it.
+
+            kb_restore();
+
             return num+1;
         }
         num++;
@@ -59,6 +81,9 @@ int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes){
     //now num is equal to the nbytes..
     //BUG:if the buffer is full, we do not add a \0 anymore
     //*((char *)buf) = '\0';
+
+    kb_restore();
+
     return num;
 }
 
@@ -120,9 +145,11 @@ int32_t terminal_failc(int32_t fd, const void *buf, int32_t nbytes){
  *   Return Value: none
  */
 int32_t terminal_open(const uint8_t* filename){
+    kb_saveAchange();
     kb_init();
     //clear();
     //just initialize the whole buffer in keyboard and clean the screen
+    kb_restore();
     return 0;
 }
 
@@ -133,8 +160,10 @@ int32_t terminal_open(const uint8_t* filename){
  *   Return Value: none
  */
 int32_t terminal_close(int32_t fd){
+    kb_saveAchange();
     kb_init();
-    clear();
+    //clear();
     //we shouldn't close it! even if we do so, we just regard it as a reinitializing act.
+    kb_restore();
     return 0;
 }

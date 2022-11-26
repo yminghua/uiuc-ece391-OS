@@ -141,12 +141,8 @@ do {                                                             \
 } while (0)
 
 /* unset an PDE_4M entry to point to a 4M page whose address given by base_addr */
-#define UNSET_PD_ENTRY_4M(pde)            \
+#define UNSET_PD_ENTRY(pde)            \
 do {                                                             \
-    (pde).PBase_Addr = 0;       \
-    (pde).PS = 0;                                             \
-    (pde).U_S = 0;                                        \
-    (pde).R_W = 0;                                        \
     (pde).P = 0;                                              \
 } while (0)
 
@@ -203,7 +199,10 @@ do {                                     \
 extern void init_paging();
 extern void map_4M(uint32_t vm, uint32_t phys);
 extern void map_4M_U(uint32_t vm, uint32_t phys);
-extern void unmap_4M(uint32_t vm, uint32_t phys);
+extern void unmap_4M(uint32_t vm);
+extern void map_4K(uint32_t vm, uint32_t phys);
+extern void map_4K_U(uint32_t vm, uint32_t phys);
+extern void unmap_4K(uint32_t vm);
 
 
 #endif //ASM

@@ -7,6 +7,7 @@
 #include "x86_page.h"
 #include "x86_desc.h"
 #include "PCB.h"
+#include "scheduler.h"
 
 #define EXE_HEADER_BYTES 40
 #define EXE_MAG0 0x7f
@@ -87,6 +88,15 @@ int32_t execute (const uint8_t* command) {
     PCB_t * p = get_PCB();
     init_PCB(childpid);
     pid_table[childpid]->parent_pid = p->pid;
+    pid_table[childpid]->noterminal = p->noterminal; //for mp3.5:which one(terminal)//child follows parents
+    if(p->visible == 1){
+        p->visible = 0; 
+        pid_table[childpid]->visible = 1;
+    }
+    else pid_table[childpid]->visible = 0;  //here, we set the visible property correctly...
+
+    sche_list[p->noterminal].pcb_ptr = pid_table[childpid]; //maintain the list properties...
+
     openStdInOut(childpid);
     //step additional: fill the args
     fillPCBargs(pair_args_pointer,command, argsnum,pid_table[childpid],1);
@@ -145,10 +155,19 @@ int32_t halt (uint32_t status) {
 
     //drush8:S T E P 4: call asm: restore stack and will jmp
     PCB_t * pp = get_PCB_withpid(pcurrent->parent_pid);
+
+    //additional for mp3.5: restore the parents' visible properties and then reset the schelist:
+    if(pcurrent->visible == 1){
+        pp->visible = 1;
+    }
+    else pp->visible = 0;  //here, we set the visible property correctly...
+    sche_list[pp->noterminal].pcb_ptr = pp; //maintain the list properties...
+
     uint32_t kkesp = pp->kesp;
     uint32_t kkebp = pp->kebp;
     giveup_pid(pcurrent->pid);
     asm_halt_end(kkesp,kkebp,status);
+
 
     printf("halt err: seriously cannot return to parents\n");
     return 1;       //it should not be reached! or it is a serious big bug.
@@ -230,7 +249,7 @@ int32_t getKStack(int32_t pid){
 //now the paging switch is a 'fake' one.
 //we operate on the same pt & pd instead
 void paging_switch(int old_pid, int new_pid){
-    unmap_4M(128*MB, 8*MB+4*MB*(old_pid-1));
+    unmap_4M(128*MB);
     if(new_pid!=0) map_4M_U(128*MB, 8*MB+4*MB*(new_pid-1));
 }
 

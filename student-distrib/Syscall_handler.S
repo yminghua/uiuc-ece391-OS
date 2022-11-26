@@ -102,7 +102,7 @@ done:
     popw    %ds     # drush8: restore the data seg..
     popfl
 
-    iret
+    iret # bug here !!!
 
 
 # System Call Jump Table

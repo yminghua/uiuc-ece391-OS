@@ -5,6 +5,7 @@
 #include "types.h"
 #include "e391keyboard.h"
 #include "PCB.h"
+#include "scheduler.h"
 //#include "e391device.h"   used in cp1, now has been abandoned
 
 //create by drush8
@@ -16,15 +17,16 @@
 /*****status of the key board, used for the state divides*****/
 kbstatus_t kbstatus={0,0,0,0,0,0,0,0,0,0};
 kb_buf_t kbbuf;
+//mp3.5: above two variable won't be used anymore.
 
 //mp3.5 additional:
-//we need that we will use the 
+//we need that we will use the many kbstatuses & kb_bufs
 kbstatus_t kbstatus_for_multiterminal[NUMTERMINAL];
 kb_buf_t kbbuf_for_multiterminal[NUMTERMINAL];
 kbstatus_t *kbstatusp;
 kb_buf_t *kbbufp;
 
-int nowterminalno; //it will be just used in this file scope. 
+int nowterminalno; //
 
 //the standard scan code of the keyboard to ascii reference, we only complete part of them (including cahr and number)
 //the translation is referenced to linux0.11:KBD_US, we do't consider the correcness or compability after '/'
@@ -270,19 +272,73 @@ void savexyposition(){
   kbstatusp->cy = get_screen_y();
 }
 
+int savexypositionwithindex(int i){
+  if(i>=NUMTERMINAL) return 1;
+  kbstatus_for_multiterminal[i].cx = get_screen_x();
+  kbstatus_for_multiterminal[i].cy = get_screen_y();
+  return 0;
+}
+
+int restorexypositionwithindex(int i){
+  if(i>=NUMTERMINAL) return 1;
+  set_screen_xy(kbstatus_for_multiterminal[i].cx,kbstatus_for_multiterminal[i].cy);
+}
+
 uint32_t kb_status_ptr_set(int i){
   if(i>=NUMTERMINAL) return 1;
   kbstatusp = &kbstatus_for_multiterminal[i];
   kbbufp = &kbbuf_for_multiterminal[i];
   return 0;
 }
+/*******
+ * 
+ * important func in mp3.5...
+ * 
+*/
+//below is the two pair funcs to save&restore the context of the kbstatus.
+uint32_t temp_videopos;
+int tempx;
+int tempy;
+kbstatus_t * tempno1;
+kb_buf_t * tempno2;
+
+int saveandchangelib_screen(int i){
+  temp_videopos = kbstatusp->cur_videoaddr;
+  tempx = kbstatusp->cx;
+  tempy = kbstatusp->cy;
+  restorexypositionwithindex(i);
+  set_video_mem(i);           //two lib.c func...
+}
+int restorelib_screen(){
+  set_screen_xy(tempx,tempy);
+  set_definite_video_mem(temp_videopos);
+  return 0;
+}
+
+int saveandchangepreviousptrs(int i){
+  tempno1 = kbstatusp;
+  tempno2 = kbbufp;
+  kb_status_ptr_set(i);
+  return 0;
+}
+
+int restoreptrs(){
+  kbstatusp = tempno1;
+  kbstatusp = tempno2;
+  return 0;
+}
+/******
+ * 
+ * 
+ * 
+*/
 
 void kbstatusswitch(int terno){ 
   //terno should be from 0 to max-1
   //terno is the no. of the kbstatus you want to switch:
   kb_status_ptr_set(terno);
-  set_screen_xy(kbstatusp->cx,kbstatusp->cy);
-  set_video_mem(terno+1);
+  //set_screen_xy(kbstatusp->cx,kbstatusp->cy);
+  //set_video_mem(terno+1);
 }
 
 
@@ -295,7 +351,7 @@ void ctrllfunc(){
 }
 
 //ctrl+F1,2,3 functionality.
-void altfnfunc(int no){
+void altfnfunc(int no){   //no should starts from 0...
   //for safety, we store position again.
   savexyposition();
   int now, previous;
@@ -304,13 +360,19 @@ void altfnfunc(int no){
   nowterminalno = now;    //we will use now&previous in the following code, and here we give nowteminalno right value.
 
   //0.0: now's kbstatus have the real video addr, but previous has only its back buffer one...
+  kb_status_ptr_set(previous);
+  kbstatusp->cur_videoaddr = BVIDEO(previous+1);
   kb_status_ptr_set(now);
   //set_screen_xy(kbstatusp->cx,kbstatusp->cy);//in lib.c we switch the position...
   kbstatusp->cur_videoaddr = BVIDEO(0);
-  kb_status_ptr_set(previous);
-  kbstatusp->cur_videoaddr = BVIDEO(previous+1);
 
-  //0. 
+  //0.0 get the PCB info, find the previous PCB, the coming visible terminal PCB, and then maintain their properties.
+  //warning: we don't need to change the lib.c's screen, or something else.
+  PCB_t * pre_pcbptr, * cur_pcbptr;
+  pre_pcbptr = sche_list[previous].pcb_ptr;
+  cur_pcbptr = sche_list[now].pcb_ptr;
+  pre_pcbptr->visible = 0;
+  cur_pcbptr->visible = 1;
 
   //then 1. save the real video stuff to the previous' back video space
   memmove(BVIDEO(previous+1),BVIDEO(0),4*1024);  //here we have to know that: 0 real, 1,2,3 is the coresponding addr. so need to add 1.
@@ -387,6 +449,10 @@ void keyboard_handler(void){
   //warning: drush'sflag. keyboard intr should not be interrupted by others. so, we don't protect the kb structs.
     cli();//for safety...
     send_eoi(KEYBOARD_IRQ);
+
+    saveandchangelib_screen(nowterminalno);
+    saveandchangepreviousptrs(nowterminalno);//mp3.5: switch pair: both kbstatus and the coresponding screen...
+
     //if(kbstatusp->kbalready == 0) return; //by default this situation won't happen.
     int scancode;
     char asciicode;
@@ -395,6 +461,9 @@ void keyboard_handler(void){
       if(kbstatusp->multiscanmode==0){    //well, there is no multiscancode comes here
         if(scancode == 0xE0 || scancode == 0xE1){
           kbstatusp->multiscanmode = scancode + 1 -0xE0;
+          savexyposition();
+          restoreptrs();
+          restorelib_screen();
           return;   //set the mode then return
         }
         if(scancode<0x80){// well, that is the key being pressed now.
@@ -462,6 +531,8 @@ void keyboard_handler(void){
 //    send_eoi(KEYBOARD_IRQ);//move up to the start
     //mp3.5: we need to reset the x,y video position everytime there is a key pressed.
     savexyposition();
+    restoreptrs();
+    restorelib_screen();
     sti();//enable the intrrupts as soon as possible.
 
 }

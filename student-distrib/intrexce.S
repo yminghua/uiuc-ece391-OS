@@ -44,9 +44,25 @@ name:                         ;\
 	popw %ds				  ;\
 	iret                      ;\
 
+#define pit_INTR_LINK(name, func, first_ret_lable)\
+.GLOBL name                   ;\
+.GLOBL first_ret_lable        ;\
+name:                         ;\
+	pushw %ds				  ;\
+	pushal                    ;\
+	pushfl                    ;\
+    movw    $KERNEL_DS, %di   ;\
+    movw    %di, %ds          ;\
+	call func                 ;\
+	popfl                     ;\
+	popal                     ;\
+	popw %ds				  ;\
+first_ret_lable:	iret      ;\
+
 /* the interrupt_handler wrappers */
 INTR_LINK(rtc_handler_linkage, rtc_handler)
 INTR_LINK(keyboard_handler_linkage,keyboard_handler)
+pit_INTR_LINK(pit_handler_linkage, scheduler, pit_wrapper_init_ret_addr)
 
 /* the excption_handler wrappers */
 //thanks to ymh
