@@ -125,6 +125,8 @@ uint32_t kb_Sinit(){
   kbstatusp->terminalreading = 0;
   kbstatusp->multiscanmode = 0;
   kbstatusp->echo = 1; //echo to screen by default.
+  kbstatusp->cx = 0;
+  kbstatusp->cy = 0;
   return 0;
 }  
         
@@ -282,6 +284,7 @@ int savexypositionwithindex(int i){
 int restorexypositionwithindex(int i){
   if(i>=NUMTERMINAL) return 1;
   set_screen_xy(kbstatus_for_multiterminal[i].cx,kbstatus_for_multiterminal[i].cy);
+  return 0;
 }
 
 uint32_t kb_status_ptr_set(int i){
@@ -297,20 +300,21 @@ uint32_t kb_status_ptr_set(int i){
 */
 //below is the two pair funcs to save&restore the context of the kbstatus.
 uint32_t temp_videopos;
-int tempx;
-int tempy;
+//int tempx;
+//int tempy;
 kbstatus_t * tempno1;
 kb_buf_t * tempno2;
 
 int saveandchangelib_screen(int i){
   temp_videopos = kbstatusp->cur_videoaddr;
-  tempx = kbstatusp->cx;
-  tempy = kbstatusp->cy;
+//  tempx = kbstatusp->cx;
+//  tempy = kbstatusp->cy;
   restorexypositionwithindex(i);
-  set_video_mem(i);           //two lib.c func...
+  set_definite_video_mem(kbstatus_for_multiterminal[i].cur_videoaddr);           //two lib.c func...
+  return 0;
 }
-int restorelib_screen(){
-  set_screen_xy(tempx,tempy);
+int restorelib_screen(){                  //make sure restore done after restore the kbstatus.
+  set_screen_xy(tempno1->cx,tempno1->cy);
   set_definite_video_mem(temp_videopos);
   return 0;
 }
@@ -324,7 +328,7 @@ int saveandchangepreviousptrs(int i){
 
 int restoreptrs(){
   kbstatusp = tempno1;
-  kbstatusp = tempno2;
+  kbbufp = tempno2;
   return 0;
 }
 /******
@@ -361,11 +365,11 @@ void altfnfunc(int no){   //no should starts from 0...
 
   //0.0: now's kbstatus have the real video addr, but previous has only its back buffer one...
   kb_status_ptr_set(previous);
-  kbstatusp->cur_videoaddr = BVIDEO(previous+1);
+  kbstatusp->cur_videoaddr = BVIDEO(previous+1);//ther cur_ptr of kbs should not change.
   kb_status_ptr_set(now);
   //set_screen_xy(kbstatusp->cx,kbstatusp->cy);//in lib.c we switch the position...
   kbstatusp->cur_videoaddr = BVIDEO(0);
-
+  kb_status_ptr_set(previous);
   //0.0 get the PCB info, find the previous PCB, the coming visible terminal PCB, and then maintain their properties.
   //warning: we don't need to change the lib.c's screen, or something else.
   PCB_t * pre_pcbptr, * cur_pcbptr;
@@ -375,10 +379,16 @@ void altfnfunc(int no){   //no should starts from 0...
   cur_pcbptr->visible = 1;
 
   //then 1. save the real video stuff to the previous' back video space
-  memmove(BVIDEO(previous+1),BVIDEO(0),4*1024);  //here we have to know that: 0 real, 1,2,3 is the coresponding addr. so need to add 1.
+  memmove((void *)BVIDEO(previous+1),(void *)BVIDEO(0),4*1024);  //here we have to know that: 0 real, 1,2,3 is the coresponding addr. so need to add 1.
   //2. copy the now's back video space stuff to the real video mapping.
-  memmove(BVIDEO(0),BVIDEO(now+1),4*1024);
+  memmove((void *)BVIDEO(0),(void *)BVIDEO(now+1),4*1024);
+  //2.additional: 
+  if(now == previous){
+    //specially, this process's terminal video mapping is changed, we need to change right now.
+        set_definite_video_mem(kbstatus_for_multiterminal[now].cur_videoaddr);
+  }
   //3. drush8'sflag: call the scheduler to switch to the corresponding terminal... now we don't realize it
+
 
   return;
 }
@@ -450,6 +460,7 @@ void keyboard_handler(void){
     cli();//for safety...
     send_eoi(KEYBOARD_IRQ);
 
+    savexyposition();
     saveandchangelib_screen(nowterminalno);
     saveandchangepreviousptrs(nowterminalno);//mp3.5: switch pair: both kbstatus and the coresponding screen...
 

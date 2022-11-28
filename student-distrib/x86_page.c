@@ -88,7 +88,7 @@ void map_4K(uint32_t vm, uint32_t phys) {
 	// 	return;
 	// }
 	SET_PD_ENTRY_4K(PD[vm>>22], &PT[0], 0, 1);
-	SET_PT_ENTRY(PT[(vm>>12)&(0x3F)], phys, 0, 1);
+	SET_PT_ENTRY(PT[(vm>>12)&(0x3FF)], phys, 0, 1);
 	Flush_TLB();
 }
 
@@ -101,7 +101,7 @@ void map_4K_U(uint32_t vm, uint32_t phys) {
 	// 	return;
 	// }
 	SET_PD_ENTRY_4K(PD[vm>>22], &PT_user[0], 1, 1);
-	SET_PT_ENTRY(PT_user[(vm>>12)&(0x3F)], phys, 1, 1);
+	SET_PT_ENTRY(PT_user[(vm>>12)&(0x3FF)], phys, 1, 1);
 	Flush_TLB();
 }
 

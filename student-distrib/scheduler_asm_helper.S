@@ -42,7 +42,8 @@ asm_init_terminal_stack:
     pushl   $USER_CS
     pushl   %edx
 
-    pushl   pit_wrapper_init_ret_addr #push init ret addr on stack (return to 'iret' instruction)
+    pushl   $pit_wrapper_init_ret_addr # push init ret addr on stack (return to 'iret' instruction)
+    movl    %esp, %eax
     movl	%esi, %esp        # switch stack back
     popl	%esi
     popl    %ebx

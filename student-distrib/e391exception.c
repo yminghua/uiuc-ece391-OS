@@ -1,5 +1,6 @@
 #include "lib.h"
 #include "e391exception.h"
+#include "e391keyboard.h"
 /*
  *  Handle_exceptions:
  *    DESCRIPTION: deal with all exception handlers.
@@ -10,8 +11,9 @@
  */
 void Print_exceptions(int vec_id){
     //maynot be correct after checkpoint1, we forbid the interrupt here. For page fault, we will add more feature in future.
+    set_video_mem(nowterminalno);
     cli();
-    clear();
+    //clear();
     register uint32_t save_cr2 ;
     //register uint32_t save_cr2 asm("cr2");
     switch (vec_id)

@@ -9,6 +9,7 @@ kbstatus_t *previous1;
 kb_buf_t *previous2;
 //assitance func:
 void kb_saveAchange(){
+    savexyposition();
     int terminalindex = get_PCB()->noterminal;
     previous1 = kbstatusp;
     previous2 = kbbufp;
@@ -16,6 +17,7 @@ void kb_saveAchange(){
     kbbufp = &kbbuf_for_multiterminal[terminalindex-1];
 }
 void kb_restore(){
+    savexyposition();
     kbstatusp = previous1;
     kbbufp = previous2;
 }
@@ -33,7 +35,7 @@ int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes){
     cli_and_save(flags);    // now, we open the critical section.
 
 
-    kb_saveAchange();
+//    kb_saveAchange();
 
 
     kbstatusp->terminalreading = 1;
@@ -68,8 +70,8 @@ int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes){
 
             if(num+1<nbytes) *((char *)buf) = '\0'; //if there is spare room, we kindly add a \0 for it.
 
-            kb_restore();
-
+//           kb_restore();
+            savexyposition();
             return num+1;
         }
         num++;
@@ -82,8 +84,8 @@ int32_t terminal_read(int32_t fd, void *buf, int32_t nbytes){
     //BUG:if the buffer is full, we do not add a \0 anymore
     //*((char *)buf) = '\0';
 
-    kb_restore();
-
+//    kb_restore();
+    savexyposition();
     return num;
 }
 
@@ -97,7 +99,7 @@ int32_t terminal_write(int32_t fd,const void* buf, int32_t nbytes){
     //for \0 we terminal_write donnot print it to the screen
     //printf("writebegin\n");
     int i,total = 0;
-    if (buf == NULL) return 1;  //case: invalid input
+    if (buf == NULL) {return 1;}  //case: invalid input
     
     //drush8's flag: for safety, we add critical region here.
     cli();
@@ -119,6 +121,7 @@ int32_t terminal_write(int32_t fd,const void* buf, int32_t nbytes){
         total++;
     }
     //printf("writeend\n");
+    savexyposition();
     sti();
     return i;               //always write 'nbytes' successfully
 }
@@ -145,11 +148,11 @@ int32_t terminal_failc(int32_t fd, const void *buf, int32_t nbytes){
  *   Return Value: none
  */
 int32_t terminal_open(const uint8_t* filename){
-    kb_saveAchange();
+//    kb_saveAchange();
     kb_init();
     //clear();
     //just initialize the whole buffer in keyboard and clean the screen
-    kb_restore();
+//    kb_restore();
     return 0;
 }
 
@@ -160,10 +163,10 @@ int32_t terminal_open(const uint8_t* filename){
  *   Return Value: none
  */
 int32_t terminal_close(int32_t fd){
-    kb_saveAchange();
+//    kb_saveAchange();
     kb_init();
     //clear();
     //we shouldn't close it! even if we do so, we just regard it as a reinitializing act.
-    kb_restore();
+//    kb_restore();
     return 0;
 }

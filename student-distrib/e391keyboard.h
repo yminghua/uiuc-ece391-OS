@@ -18,9 +18,9 @@
 #define CAPSLOCK_P 0x3A
 #define BACKSPACE_P 0x0E
 
-#define F1_P 0x3B
-#define F2_P 0x3C
-#define F3_P 0x3D
+#define F1_P 0x02     //debug: use 02,    standard: 3B
+#define F2_P 0x03     //debug: use 03,    standard: 3C 
+#define F3_P 0x04     //debug: use 04,    standard: 3D
 
 #define TWOSCAN 0xE0
 #define THREESCAN 0xE1  //wont used in our kb.

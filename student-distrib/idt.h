@@ -39,6 +39,7 @@ void Floating_Point_Exception(void);
 /* Interrupts from keyboard, RTC, and system_calls */
 extern void rtc_handler_linkage();
 extern void keyboard_handler_linkage(); //2022.10.16. Now only two interrupt.
+extern void pit_handler_linkage();      //mp3.5: 3 ..
 
 
 void SYSTEM_CALL_handler(void);

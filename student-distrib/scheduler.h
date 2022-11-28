@@ -43,7 +43,7 @@ extern void init_multiple_terminal();
 
 //from scheduler_asm_helper.S
 extern void scheduler_asm(uint32_t kesp, uint32_t kebp, uint32_t kespaddr);
-extern void asm_init_terminal_stack(uint32_t kstack_ptr, uint32_t ustack_ptr, uint32_t exe_ptr);
+extern int asm_init_terminal_stack(uint32_t kstack_ptr, uint32_t ustack_ptr, uint32_t exe_ptr);
 
 
 

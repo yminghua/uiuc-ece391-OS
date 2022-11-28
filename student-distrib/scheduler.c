@@ -10,6 +10,7 @@
 #include "x86_page.h"
 #include "x86_desc.h"
 #include "e391keyboard.h"
+#include "i8259.h"
 
 #define REAL_VID_PAGE 0xB8000
 
@@ -23,8 +24,10 @@ uint32_t cur_visible_terminal;
  * created by LYS
  */
 void scheduler() {
+    send_eoi(PIT_IRQ);
     uint32_t cur_pid = cur_sche_node->pcb_ptr->pid;
     uint32_t next_pid = cur_sche_node->next->pcb_ptr->pid;
+    cur_sche_node = cur_sche_node->next;
     uint32_t terminal_pid; //the terminal pid for next process
     // cur_sche_node = cur_sche_node->next;
 
@@ -34,7 +37,7 @@ void scheduler() {
     else while ((terminal_pid=get_PCB_withpid(terminal_pid)->parent_pid) > 3);
 
     // do paging switch (map next user program image to vm 128MB)
-    paging_switch(next_pid, cur_pid);
+    paging_switch(cur_pid, next_pid);
 
     // remap kernel video memory page (the vm of REAL_VID_PAGE) & and the corresponding vidmap syscall_func page(if exist)
     //1. judge if it is the visible terminal to determine the page setting
@@ -42,7 +45,8 @@ void scheduler() {
     //if (get_PCB_withpid(terminal_pid)->visible || get_PCB_withpid(terminal_pid)->noterminal == nowterminalno) map_4K(REAL_VID_PAGE, REAL_VID_PAGE);
     //else map_4K(REAL_VID_PAGE, BackupVP(terminal_pid));
     savexyposition();   //save the current position to the no.terminal's kbstatus
-    int no = get_PCB_withpid(next_pid)->noterminal;
+    int no = get_PCB_withpid(next_pid)->noterminal-1;
+    kb_status_ptr_set(no); //we have to change to the corresponding kbs
     set_definite_video_mem(kbstatus_for_multiterminal[no].cur_videoaddr);                 //lib.c: change the screen position
     restorexypositionwithindex(no);                                                       //lib.c: change the x,y position
     //we should not change the video mapping at the low level addr, however we need to change the addr of the ptr in lib.c
@@ -54,8 +58,8 @@ void scheduler() {
         else SET_PT_ENTRY(PT_user[(UVIDEOADDR>>12)&(0x3FF)], BackupVP(p->pid), 1, 1);
     }     //means the user has called the vidmap syscall
     //3. don't switch the kbstatus, but set and restore the screen position.
-    savexypositionwithindex(get_PCB_withpid(next_pid)->noterminal);
-    restorexypositionwithindex(get_PCB_withpid(cur_pid)->noterminal);
+    //savexypositionwithindex(get_PCB_withpid(next_pid)->noterminal);
+    //restorexypositionwithindex(get_PCB_withpid(cur_pid)->noterminal);
 
     // set TSS.esp0 for next process
     tss.esp0 = (uint32_t)getKStack(next_pid);
@@ -65,7 +69,7 @@ void scheduler() {
     PCB_t * nextp = get_PCB_withpid(next_pid);
     register uint32_t the_ebp asm("ebp");
     p->kebp = the_ebp;
-    scheduler_asm(nextp->kesp, nextp->kebp, &p->kesp);
+    scheduler_asm((uint32_t)nextp->kesp,(uint32_t)nextp->kebp, (uint32_t)&p->kesp);
     //warning: in the asm we don't save the ebx, hoping that the return won't use the ebx register.
     //if there exists bugs, try to fix it in the asm code.
     return;
@@ -102,8 +106,9 @@ void init_multiple_terminal() {
 
         //init the Kstack for IRET and scheduler() context (for shell 2 and 3 only?)
         if (childpid==1) break;
-        asm_init_terminal_stack(getKStack(childpid), getUStack(childpid), prog_code_start);
-
+        pid_table[childpid]->kesp = (uint32_t)asm_init_terminal_stack(getKStack(childpid), getUStack(childpid), prog_code_start);
+        //during the asm stackpushing, we pushed 6 arguments totally,we give pcb the properties.
+        //pid_table[childpid]->kesp = (uint32_t)getKStack(childpid)-4*6;//6 arguments, 24bite
     }
 
     //init the prev and next field of sche_list
@@ -169,7 +174,7 @@ void set_pit_count(uint16_t count) {
 // 2^14, so we need to set as 0100 0000 0000 0000 
 void pit_init() {
     outb(0x34, CMDPORT);               //0x34 == 0b00110100 ::  channel 0, lobyte/hibyte, rate generator
-    set_pit_count(0x4000);
+    set_pit_count(0x0000);   //0x4000
     enable_irq(PIT_IRQ);  //unmask the irq of the PIT(0).
     return;
 }

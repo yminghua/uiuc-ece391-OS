@@ -167,14 +167,18 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
 
     //interrupt work begin :: drush8
+
     printf("Enabling Interrupts\n");
-    keyboard_init();
     rtc_init();
 //drush8, now we only enable the keyboard.
 
 
     init_Syscall(); //LYS: initialize PCB_prime and pid_table
 
+    pit_init();
+    clear();
+    keyboard_init();
+    init_multiple_terminal();
     sti();
 
 #ifdef RUN_TESTS
@@ -183,7 +187,7 @@ void entry(unsigned long magic, unsigned long addr) {
      const int8_t *sh = "./shell";
      while(1){
         //  execute((uint8_t *)sh);
-        init_multiple_terminal();
+        //init_multiple_terminal();
         printf("shell crashed, try restarting...\n");
      }
 
