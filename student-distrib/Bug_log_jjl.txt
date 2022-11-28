@@ -24,3 +24,8 @@ bug4. for the execute, we need to close the fd for that file after the loader, o
 ======CP4======
 bug1. vidmap, at first we think the double pointer is used to pass the target virtual address...
 bug2. some small mistake when trying to split the argument, so fianlly leads that there is a " " at the final arguments.
+
+======CP5======
+bug1. "sche_main" is a kernel code, so we need to push kernel_segment selector to the iret stack, but not the user level kernel_segment
+bug2. for screen switching, there are many complex points. we have to make sure that every one has a independent kb buffer.
+bug3. when you make the fake stack for the initial process, you need to store the final esp property into the PCB.
