@@ -502,7 +502,7 @@ void keyboard_handler(void){
           case F3_P:
             if(kbstatusp->altpressed>0) {altfnfunc(scancode-F1_P);break;}
           case L_P:   //is l pressed?
-            if(kbstatusp->controlpressed>0) {ctrllfunc();break;}    //here we clean the screen, but not the buf of keyboard.
+            if(kbstatusp->controlpressed>0 && scancode == L_P) {ctrllfunc();break;}    //here we clean the screen, but not the buf of keyboard.
           default:
             asciicode = asciitranslate(scancode);
             if(asciicode == '\0') break;                          //useless or the situation we dont consider, as if it is untyped by the kb.
@@ -544,7 +544,7 @@ void keyboard_handler(void){
     savexyposition();
     restoreptrs();
     restorelib_screen();
-    sti();//enable the intrrupts as soon as possible.
+//    sti();//enable the intrrupts as soon as possible.
 
 }
 

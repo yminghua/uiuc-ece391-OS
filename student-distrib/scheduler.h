@@ -40,10 +40,13 @@ extern uint32_t cur_visible_terminal;
 //from scheduler.c
 extern void scheduler();
 extern void init_multiple_terminal();
+extern void _init_multiple_terminal();
+void sche_main();
 
 //from scheduler_asm_helper.S
 extern void scheduler_asm(uint32_t kesp, uint32_t kebp, uint32_t kespaddr);
 extern int asm_init_terminal_stack(uint32_t kstack_ptr, uint32_t ustack_ptr, uint32_t exe_ptr);
+extern int aasm_init_terminal_stack(uint32_t kstack_ptr, uint32_t ustack_ptr, uint32_t exe_ptr);
 
 
 

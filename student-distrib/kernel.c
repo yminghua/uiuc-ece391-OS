@@ -178,7 +178,7 @@ void entry(unsigned long magic, unsigned long addr) {
     pit_init();
     clear();
     keyboard_init();
-    init_multiple_terminal();
+    _init_multiple_terminal();
     sti();
 
 #ifdef RUN_TESTS

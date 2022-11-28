@@ -7,7 +7,7 @@
 
 .GLOBL scheduler_asm
 .GLOBL asm_init_terminal_stack
-
+.GLOBL aasm_init_terminal_stack
 /* 
  * scheduler_asm assembly helper: save old esp, do stack switch and ret
  */
@@ -49,4 +49,29 @@ asm_init_terminal_stack:
     popl    %ebx
     ret
     
+
+
+aasm_init_terminal_stack:
+    pushl	%ebx
+    pushl	%esi
+	movl	12(%esp), %ebx    # terminal_esp
+	movl	16(%esp), %ecx    # ustack pointer
+	movl	20(%esp), %edx    # prog_code_start
+    movl    %esp, %esi        # store current esp
+    movl    %ebx, %esp        # switch stack to terminal process
+    # push iret context (5 pushes)
+    pushl   $KERNEL_DS          # LYS. should be SS, but DS and SS makes no difference (CS is different for it contains previledge level)
+    pushl   %ecx
+    pushl   $0x00000202       # ????, pushfl won't work...
+    pushl   $KERNEL_CS
+    pushl   %edx
+
+    pushl   $pit_wrapper_init_ret_addr # push init ret addr on stack (return to 'iret' instruction)
+    movl    %esp, %eax
+    movl	%esi, %esp        # switch stack back
+    popl	%esi
+    popl    %ebx
+    ret
+
+
 

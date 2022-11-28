@@ -139,8 +139,75 @@ void init_multiple_terminal() {
     asm_exec_end(prog_code_start, getUStack(childpid),(int32_t)(&p->kesp));
 }
 
+void _init_multiple_terminal() {
+    //const int8_t *fnamep = "shell";  
+    //uint32_t prog_code_start;
+    //int32_t fd;
+    uint32_t childpid;
+    int i, i_prev, i_next;
 
+    //open './shell' 3 times and load the user program image
+    for (childpid=3; childpid>=1; childpid--) {
+        //fd = open((uint8_t*)fnamep);
+        //prog_code_start = file_check(fd);
 
+        //fill in child PCB
+        pid_table[childpid] = get_PCB_withpid(childpid);
+        init_PCB(childpid);
+        //then, we give the no. terminal value: drush8
+        pid_table[childpid]->noterminal = childpid;
+        //pid_table[childpid]->parent_pid = 0;
+        openStdInOut(childpid);
+        //loader(fd,childpid); 
+        //close(fd);
+
+        //init sche_list pcb_ptr field
+        sche_list[childpid-1].pcb_ptr = get_PCB_withpid(childpid);
+
+        //init the Kstack for IRET and scheduler() context (for shell 2 and 3 only?)
+        //if (childpid==1) break;
+        pid_table[childpid]->kesp = (uint32_t)aasm_init_terminal_stack(getKStack(childpid), getUStack(childpid), (uint32_t)sche_main);
+        //during the asm stackpushing, we pushed 6 arguments totally,we give pcb the properties.
+        //pid_table[childpid]->kesp = (uint32_t)getKStack(childpid)-4*6;//6 arguments, 24bite
+    }
+
+    //init the prev and next field of sche_list
+    for (i=0; i<3; i++) {
+        if (i==0) i_prev=2;
+        else i_prev=i-1;
+        if (i==2) i_next=0;
+        else i_next=i+1;
+
+        sche_list[i].prev = &sche_list[i_prev];
+        sche_list[i].next = &sche_list[i_next];
+    }
+
+    //set up paging for backup video page
+    map_4K(BackupVP(1), BackupVP(1));
+    map_4K(BackupVP(2), BackupVP(2));
+    map_4K(BackupVP(3), BackupVP(3));
+
+    //set up cur_visible_terminal to 1, cur_sche_node to first and execute first shell
+    //here, we jump from the process 0 to process 1..., the process 0 will not be execute forever...
+    PCB_t * p = get_PCB_withpid(1);
+    cur_visible_terminal=1;
+    sche_list[0].pcb_ptr->visible=1;
+    cur_sche_node = &sche_list[0];
+    childpid=1;
+    tss.esp0 = (uint32_t)getKStack(childpid);
+    register uint32_t the_ebp asm("ebp");
+    get_PCB()->kebp = the_ebp;
+    //asm_exec_end(prog_code_start, getUStack(childpid),(int32_t)(&p->kesp));
+    scheduler_asm((uint32_t)p->kesp,(uint32_t)p->kebp, (uint32_t)&get_PCB()->kesp);
+}
+
+void sche_main(){
+    const int8_t *sh = "./shell";
+     while(1){
+        execute((uint8_t *)sh);
+        printf("shell crashed, try restarting...\n");
+     }
+}
 
 /*
  * 
@@ -174,7 +241,7 @@ void set_pit_count(uint16_t count) {
 // 2^14, so we need to set as 0100 0000 0000 0000 
 void pit_init() {
     outb(0x34, CMDPORT);               //0x34 == 0b00110100 ::  channel 0, lobyte/hibyte, rate generator
-    set_pit_count(0x0000);   //0x4000
+    set_pit_count(0x4000);   //0x4000
     enable_irq(PIT_IRQ);  //unmask the irq of the PIT(0).
     return;
 }
