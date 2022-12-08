@@ -13,6 +13,36 @@
  */
 
 
+# macros for signal
+.macro GET_HW_CONTEXT
+    push  %fs
+    push  %es
+    push  %ds
+    pushl %eax
+    pushl %ebp
+    pushl %edi
+    pushl %esi
+    pushl %edx
+    pushl %ecx
+    pushl %ebx
+.endm
+
+
+.macro RESTORE_HW_CONTEXT
+    popl %ebx
+    popl %ecx
+    popl %edx
+    popl %esi
+    popl %edi
+    popl %ebp
+    popl %eax
+    pop  %ds
+    pop  %es
+    pop  %fs
+    addl $8, %esp
+.endm
+
+
 //we defined the assambly linkage macro to compute all the entrance of the interrrupt.
 #define INTR_LINK(name,func)\
 .GLOBL name                   ;\
@@ -31,37 +61,39 @@ name:                         ;\
 #define INTR_LINKR(name,func,n)\
 .GLOBL name                   ;\
 name:                         ;\
-	pushw %ds				  ;\
-	pushal                    ;\
-	pushfl                    ;\
-	movw    $KERNEL_DS, %di   ;\
-    movw    %di, %ds          ;\
+	pushl	$0				  ;\
     pushl   $n                ;\
+	GET_HW_CONTEXT			  ;\
 	call func                 ;\
-    addl	$4, %esp          ;\
-	popfl                     ;\
-	popal                     ;\
-	popw %ds				  ;\
+	call check_signal         ;\
+	RESTORE_HW_CONTEXT		  ;\
 	iret                      ;\
 
 #define pit_INTR_LINK(name, func, first_ret_lable)\
 .GLOBL name                   ;\
 .GLOBL first_ret_lable        ;\
 name:                         ;\
-	pushw %ds				  ;\
-	pushal                    ;\
-	pushfl                    ;\
-    movw    $KERNEL_DS, %di   ;\
-    movw    %di, %ds          ;\
+	pushl $0				  ;\
+    pushl $0				  ;\
+	GET_HW_CONTEXT			  ;\
 	call func                 ;\
-	popfl                     ;\
-	popal                     ;\
-	popw %ds				  ;\
+	call check_signal         ;\
+	RESTORE_HW_CONTEXT		  ;\
 first_ret_lable:	iret      ;\
 
 /* the interrupt_handler wrappers */
 INTR_LINK(rtc_handler_linkage, rtc_handler)
-INTR_LINK(keyboard_handler_linkage,keyboard_handler)
+# INTR_LINK(keyboard_handler_linkage,keyboard_handler)
+.GLOBL 	keyboard_handler_linkage      
+keyboard_handler_linkage:                         
+	pushl $0				  
+    pushl $1				  
+	GET_HW_CONTEXT			  
+	call keyboard_handler                 
+	call check_signal         
+	RESTORE_HW_CONTEXT		  
+	iret                  
+
 pit_INTR_LINK(pit_handler_linkage, scheduler, pit_wrapper_init_ret_addr)
 
 /* the excption_handler wrappers */
@@ -80,7 +112,16 @@ INTR_LINKR(Invalid_TSS, Print_exceptions,10 )
 INTR_LINKR(Segment_Not_Present, Print_exceptions,11 )
 INTR_LINKR(Stack_Segment_Fault, Print_exceptions, 12)
 INTR_LINKR(General_Protection, Print_exceptions, 13)
-INTR_LINKR(Page_Fault, Print_exceptions,14 )
+# INTR_LINKR(Page_Fault, Print_exceptions,14 )
+.GLOBL Page_Fault
+Page_Fault:
+    pushl   $14                
+	GET_HW_CONTEXT			  
+	call Print_exceptions                 
+	call check_signal         
+	RESTORE_HW_CONTEXT		  
+	iret                 
+
 INTR_LINKR(Floating_Point_Error, Print_exceptions,16 )
 INTR_LINKR(Alignment_Check, Print_exceptions,17 )
 INTR_LINKR(Machine_Check, Print_exceptions, 18)

@@ -31,6 +31,15 @@ void scheduler() {
     uint32_t terminal_pid; //the terminal pid for next process
     // cur_sche_node = cur_sche_node->next;
 
+    // signal alarm
+    if (sche_list[nowterminalno].pcb_ptr) {
+        sche_list[nowterminalno].pcb_ptr->signal.alarm_time += 1000 / 72.82;
+        if (sche_list[nowterminalno].pcb_ptr->signal.alarm_time > ALARM_TIME) {
+            signal_send(3); // ALARM
+            sche_list[nowterminalno].pcb_ptr->signal.alarm_time = 0;
+        }
+    }
+
     // get terminal pid for the next process
     terminal_pid = next_pid;
     if (next_pid <= 3) terminal_pid = next_pid;

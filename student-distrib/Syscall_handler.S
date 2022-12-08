@@ -1,4 +1,4 @@
-/* Syscall_handler.s - handle int 0x80
+/* Syscall_handler.S - handle int 0x80
  * created by LYS, JJL on 2022/10/29
  */
 
@@ -18,6 +18,35 @@
 
 .global SYSTEM_CALL_handler
 
+
+# macros for signal
+.macro GET_HW_CONTEXT
+    push  %fs
+    push  %es
+    push  %ds
+    pushl %eax
+    pushl %ebp
+    pushl %edi
+    pushl %esi
+    pushl %edx
+    pushl %ecx
+    pushl %ebx
+.endm
+
+
+.macro RESTORE_HW_CONTEXT
+    popl %ebx
+    popl %ecx
+    popl %edx
+    popl %esi
+    popl %edi
+    popl %ebp
+    popl %eax
+    pop  %ds
+    pop  %es
+    pop  %fs
+    addl $8, %esp
+.endm
 
 
 /* 
@@ -57,23 +86,9 @@ Syscall_wrapper(sys_sigreturn, SYS_SIGRETURN)
 
 /* the system call handler: vector 0x80 */
 SYSTEM_CALL_handler:
-    pushfl
-    pushw   %ds         // drush8: save the data seg
-    pushl	%ebp
-    pushl	%edi
-    pushl	%esi
-    pushl	%edx
-    pushl	%ecx
-    pushl	%ebx
-
-
-    pushl %edx                  # 3rd arg first.
-    pushl %ecx
-    pushl %ebx                  # drush8: push the passing arguments for the sys_call c func
-
-
-    movw    $KERNEL_DS, %di
-    movw    %di, %ds            # drush8: we need to change the ds segment in level 0.
+    pushl $0         # push dummy 0
+    pushl $0x80      # push vector number 0x80
+    GET_HW_CONTEXT
 
     # check if the system call number is valid
     cmpl	$1, %eax
@@ -92,15 +107,9 @@ invalid_syscall_number:
     movl	$-1, %eax   # return -1 for errors
 
 done:
-    addl    $12, %esp   # drush8: remove the 3 arguments.
-    popl	%ebx
-    popl	%ecx
-    popl	%edx
-    popl	%esi
-    popl	%edi
-    popl	%ebp
-    popw    %ds     # drush8: restore the data seg..
-    popfl
+    movl %eax, 24(%esp)  # store EAX to HW context
+    call check_signal
+    RESTORE_HW_CONTEXT
 
     iret # bug here !!!
 

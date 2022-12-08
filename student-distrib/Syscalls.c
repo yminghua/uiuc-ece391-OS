@@ -207,16 +207,16 @@ int32_t vidmap (uint8_t** screen_start) {
 }
 
 
-int32_t set_handler (int32_t signum, void* handler_address) {
-    //PCB_t * PCB_current = get_PCB();
-    return -1;
-}
+// int32_t set_handler (int32_t signum, void* handler_address) {
+//     //PCB_t * PCB_current = get_PCB();
+//     return -1;
+// }
 
 
-int32_t sigreturn (void) {
-    //PCB_t * PCB_current = get_PCB();
-    return -1;
-}
+// int32_t sigreturn (void) {
+//     //PCB_t * PCB_current = get_PCB();
+//     return -1;
+// }
 
 
 /* --------------------------- assistance functions ----------------------------- */

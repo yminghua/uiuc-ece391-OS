@@ -16,6 +16,8 @@
 #include "rtc.h"
 #include "Syscalls.h"
 #include "scheduler.h" //LYS
+#include "malloc.h" //ymh
+
 //#include "e391device.h"       used in cp1, now is useless
 
 #define RUN_TESTS
@@ -153,10 +155,14 @@ void entry(unsigned long magic, unsigned long addr) {
  
     init_paging(); //LYS
 
-
     /* Init the PIC */
     i8259_init();
 
+    /* Initialization for dynamic memory allocation */
+    init_dynamic_malloc();  //ymh
+
+    /* Initialization for signal */
+    init_signal_default_handler();  //ymh
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
@@ -183,13 +189,13 @@ void entry(unsigned long magic, unsigned long addr) {
 
 #ifdef RUN_TESTS
     /* Run tests */
-   //launch_tests();
-     const int8_t *sh = "./shell";
-     while(1){
-        //  execute((uint8_t *)sh);
-        //init_multiple_terminal();
-        printf("shell crashed, try restarting...\n");
-     }
+//    launch_tests();
+    //  const int8_t *sh = "./shell";
+    //  while(1){
+    //     //  execute((uint8_t *)sh);
+    //     //init_multiple_terminal();
+    //     printf("shell crashed, try restarting...\n");
+    //  }
 
 #endif
     /* Execute the first program ("shell") ... */

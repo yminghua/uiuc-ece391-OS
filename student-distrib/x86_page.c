@@ -28,6 +28,9 @@ void init_paging() {
     SET_PT_ENTRY(PT[pt_vid_mem_entry], 0xB8000, 0, 1);
     SET_PD_ENTRY_4M(PD[1], 0x400000, 0, 1);
 
+	/* Initialize PD[1022] for dynamic allocated memory (4088~4092MB) */
+	SET_PD_ENTRY_4M(PD[1022], 0xFF800000, 0, 1); 	// ymh
+
     asm volatile(
 			 	"movl %0, %%eax;"
 				"movl %%eax, %%cr3;"

@@ -7,6 +7,7 @@
 
 #include "types.h"
 #include "fileSystem.h"
+#include "signal.h"
 
 #define MASK 0xFFFFE000     // 8KB, mask esp to find PCB
 #define MAX_PNUM 10     // maximum process number, including the original boot up
@@ -25,6 +26,7 @@ typedef struct {
     uint32_t visible;  //1 for visible, 0 for not
     uint8_t argstr[PCB_ARGLEN];    //drush8: warning, another restriction is in execute_halt.c. Now they are the same:128 at 11.13
     uint8_t noterminal;            //shows the belonging terminal number(by default from 1 to 3);
+    signal_t signal;
 } PCB_t;
 
 

@@ -4,8 +4,10 @@
 #include "intrexcenum.h"
 #include "types.h"
 #include "e391keyboard.h"
-#include "PCB.h"
 #include "scheduler.h"
+#include "Syscalls.h"
+
+
 //#include "e391device.h"   used in cp1, now has been abandoned
 
 //create by drush8
@@ -455,7 +457,7 @@ void keyboard_init(void) {
  *   Return Value: none
  *   (we reference the linux 0.11 source code, to generate the code of us.)
  */
-void keyboard_handler(void){
+void keyboard_handler(hw_context_t hw){
   //warning: drush'sflag. keyboard intr should not be interrupted by others. so, we don't protect the kb structs.
     cli();//for safety...
     send_eoi(KEYBOARD_IRQ);
@@ -503,6 +505,11 @@ void keyboard_handler(void){
             if(kbstatusp->altpressed>0) {altfnfunc(scancode-F1_P);break;}
           case L_P:   //is l pressed?
             if(kbstatusp->controlpressed>0 && scancode == L_P) {ctrllfunc();break;}    //here we clean the screen, but not the buf of keyboard.
+          case C_P:   // is c pressed?
+            if(kbstatusp->controlpressed>0 && scancode == C_P) {
+              signal_send(2); // Interrupt by ctrl + c
+              break;
+            }
           default:
             asciicode = asciitranslate(scancode);
             if(asciicode == '\0') break;                          //useless or the situation we dont consider, as if it is untyped by the kb.

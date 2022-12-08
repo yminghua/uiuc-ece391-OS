@@ -86,6 +86,7 @@ int32_t execute (const uint8_t* command) {
 
     //drush8: S T E P 4: fill the PCB and open stdin/out for the child.
     PCB_t * p = get_PCB();
+    signal_init(&(pid_table[childpid]->signal));  // initialize the signal struct
     init_PCB(childpid);
     pid_table[childpid]->parent_pid = p->pid;
     pid_table[childpid]->noterminal = p->noterminal; //for mp3.5:which one(terminal)//child follows parents

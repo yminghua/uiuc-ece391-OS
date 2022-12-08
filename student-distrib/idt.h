@@ -8,10 +8,30 @@
 #include "x86_desc.h"
 #include "lib.h"
 
+typedef struct hw_context {
+    int32_t ebx;
+    int32_t ecx;
+    int32_t edx;
+    int32_t esi;
+    int32_t edi;
+    int32_t ebp;
+    int32_t eax;
+    uint32_t ds;
+    uint32_t es;
+    uint32_t fs;
+    uint32_t irq_or_excep;  // IRQ num or exception num
+    uint32_t err_code_or_dummy;  // error code for exception or dummy
+    uint32_t eip;  // return address
+    uint16_t cs;
+    uint32_t eflags;
+    uint32_t esp;
+    uint32_t ss;
+} hw_context_t;
+
 /* Initialize the IDT */
 void Init_IDT(void);
 /* Handle all exceptions */
-void Print_exceptions(int vec_id);
+void Print_exceptions(hw_context_t hw);
 /* Handle system calls */
 void Print_system_calls(void);
 

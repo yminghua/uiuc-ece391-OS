@@ -1,6 +1,8 @@
 #include "lib.h"
 #include "e391exception.h"
 #include "e391keyboard.h"
+#include "signal.h"
+
 /*
  *  Handle_exceptions:
  *    DESCRIPTION: deal with all exception handlers.
@@ -9,12 +11,13 @@
  *    RETURN VALUE: none
  *    SIDE EFFECTS: current exception is handled
  */
-void Print_exceptions(int vec_id){
+void Print_exceptions(hw_context_t hw){
+    uint32_t vec_id = hw.irq_or_excep;
     //maynot be correct after checkpoint1, we forbid the interrupt here. For page fault, we will add more feature in future.
-    set_video_mem(nowterminalno);
-    cli();
+    // set_video_mem(nowterminalno);
+    // cli();
     //clear();
-    register uint32_t save_cr2 ;
+    //  register uint32_t save_cr2 ;
     //register uint32_t save_cr2 asm("cr2");
     switch (vec_id)
     {
@@ -75,15 +78,16 @@ void Print_exceptions(int vec_id){
         break;
 
     case 14:
-        printf("Page_Fault!!! \n");
-            asm volatile(
-                "movl %%cr2, %%ebx;"
-				"movl %%ebx, %0;"
-				: "=a" (save_cr2)
-				: 
-				: "ebx"
-	);
-        printf("0x%#x",save_cr2);
+        printf("Exception 14 (Page_Fault) Occurs!\n");
+    //      printf("Page_Fault!!! \n");
+    //          asm volatile(
+    //              "movl %%cr2, %%ebx;"
+	//  			"movl %%ebx, %0;"
+	//  			: "=a" (save_cr2)
+	//  			: 
+	//  			: "ebx"
+	//  );
+    //      printf("0x%#x",save_cr2);
         break;
 
     case 16:
@@ -105,7 +109,16 @@ void Print_exceptions(int vec_id){
     default:
         break;
     }
-    while(1){}  //the blue screen forever
+    if (vec_id == 0) {
+        printf("Send DIV_ZERO Exception Signal\n");
+        signal_send(0);
+    }
+    else {
+        printf("Send Exception Signal\n");
+        signal_send(1);
+    }
+
+    //   while(1){}  //the blue screen forever
 }
 
 //below only used in cp1:drush8

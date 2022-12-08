@@ -1,6 +1,7 @@
 #if !defined(E391KB_H)
 #define E391KB_H
 #include "types.h"
+#include "idt.h"
 //create by drush8
 
 //predefined macro constant
@@ -10,6 +11,7 @@
 #define KBBUSY 1
 #define KBFREE 0
 //all is the pressed scan code.
+#define C_P 0x2E
 #define L_P 0x26
 #define LSHIFT_P 0x2A
 #define RSHIFT_P 0x36
@@ -86,7 +88,7 @@ extern uint32_t kbsetbusy();
 extern uint32_t kb_setoffset(int n);
 
 void keyboard_init();
-void keyboard_handler();
+void keyboard_handler(hw_context_t hw);
 uint32_t kb_status_ptr_set(int i);
 int savexypositionwithindex(int i);
 int restorexypositionwithindex(int i);

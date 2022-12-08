@@ -9,6 +9,7 @@
 //#include "e391device.h"//drush8: can be cancelled when we doesn't use cp1: pageF test
 #include "e391terminal.h"
 #include "rtc.h" //yst
+#include "malloc.h"
 
 #define PASS 1
 #define FAIL 0 
@@ -85,6 +86,93 @@ int page_test(){
 			continue;
 		}
 	}
+	return result;
+}
+
+void malloc_print(){
+
+	#define vmm 0xFF800000
+
+	if (PD[vmm>>22].PS == 1)
+		printf("A big page used for dynamic memory allocation at Virtual memory: %x, Map to Physical memory: %x\n", vmm, (PD[vmm>>22].PBase_Addr)<<22);
+
+	long long i;
+	for (i = 0; i < BLOCK_NUM; i++){
+		if (memory_block_tracker[i] != 0)
+		{
+			printf("The following %d memory blocks are allocated!\n", memory_block_tracker[i]);
+			printf("Starting form Virtual memory: %x\n", vmm+i*KB);
+			i += memory_block_tracker[i]-1;
+		}
+	}
+}
+
+int malloc_test() {
+	TEST_HEADER;
+	int result = PASS;
+	rtc_reset_freq(2);
+	int count = 0;
+	int r = 1;
+
+	printf("---Virtual memory 4088~4092 MB are for Dynamic Memory Allocation---\n");
+	printf("---we divide the above 4MB memory into 4096 blocks, each block is 1KB---\n");
+	printf("------------------------------------------------------------------------\n");
+
+	while (count<8) {
+	rtc_read(0, &r, 4);
+		count++;
+	}
+	count = 0;
+
+	printf("malloc int a[1200], b[1200], c[1200]\n");
+	int* a, *b, *c;
+	int size = 1200;
+	a = (int*)malloc(size*4);
+	b = (int*)malloc(size*4);
+	c = (int*)malloc(size*4);
+
+	malloc_print();
+	printf("------------------------------------------------------------------------\n");
+
+	while (count<16) {
+	rtc_read(0, &r, 4);
+		count++;
+	}
+	count = 0;
+
+	printf("free(b)\n");
+	free(b);
+
+	malloc_print();
+	printf("------------------------------------------------------------------------\n");
+
+	while (count<16) {
+	rtc_read(0, &r, 4);
+		count++;
+	}
+	count = 0;
+
+	printf("malloc int d[2400]\n");
+	int* d;
+	size = 2400;
+	d = (int*)malloc(size*4);
+
+	malloc_print();
+	printf("------------------------------------------------------------------------\n");
+
+	while (count<16) {
+	rtc_read(0, &r, 4);
+		count++;
+	}
+	count = 0;
+
+	printf("malloc int e[600]\n");
+	int* e;
+	size = 600;
+	e = (int*)malloc(size*4);
+
+	malloc_print();
+
 	return result;
 }
 
@@ -367,6 +455,8 @@ void launch_tests(){
 	// Syscalls_test_terminal();
 
 	//C P 4 : T E S T I N G
-	vidmap_test();
+	// vidmap_test();
+
+	TEST_OUTPUT("malloc_test", malloc_test());
 }
 
